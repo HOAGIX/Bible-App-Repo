@@ -62,7 +62,7 @@ function App() {
     </>
   )
 }
-
+//fetch('Test.txt') no need for other //'s because it is public 
 
 
 
