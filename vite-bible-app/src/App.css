@@ -1,42 +1,84 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+body {
+  background: linear-gradient(0deg, #47368c 0%, #a28bfe 16%, #8a97ff 98%);
+
+  justify-content: center;
   text-align: center;
 }
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.FadeIn {
+  opacity: 0;
+  animation: fadeIn 3s ease-out 1s 1 normal forwards;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* region Footer */
+footer {
+  background-color: #47368c;
+
+  height: 5vh;
+
+
+  align-content: center;
+  text-align: center;
+
+  border-radius: 10px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.main {
+
+  background-color: #47368c;
+  height: 70vh;
+  border-radius: 10px;
+  margin-bottom: 5vh;
+
+  align-content: center;
+
+  overflow-y: scroll;
+}
+.list-item{
+
+  text-align: center;
+  border-radius: 10px;
+  margin-left: 5%;
+  margin-right: 5%;
+
+  height: 20vh;
+  margin-bottom: 2vh;
+
+
+  background-color: #241855;
+  list-style: none;
+}
+.Menu-Item{
+  width: 5vw;
+  margin-left: 10px;
+  margin-right: 10px;
+
+  background-color: #241855;
+  
+
+  inset: unset;
 }
 
-.card {
-  padding: 2em;
+button{
+  height: 5vh;
+  border-radius: 10px;
 }
+button:hover{
+  scale: 1;
+  transition: scale .2s ease 0s;
+  scale: 1.3;
+}
+button:active{
+  scale: 1.3;
+  transition: scale .05s ease 0s;
+  scale: 1;
+}
+/* endregion */
+@keyframes fadeIn {
+	0% {
+		opacity: 0;
+	}
 
-.read-the-docs {
-  color: #888;
+	100% {
+		opacity: 1;
+	}
 }

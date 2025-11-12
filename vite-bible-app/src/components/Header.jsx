@@ -1,6 +1,6 @@
 const Header = () => {
     return (
-        <div>{ import.meta.env.VITE_API_URL }</div>
+        <h1>FISHER BIBLE APP</h1>
     );
 };
 export default Header;
