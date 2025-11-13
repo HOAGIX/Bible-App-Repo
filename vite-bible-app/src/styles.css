@@ -72,13 +72,10 @@ button:focus, .Menu-Item:focus, .list-item:focus{
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     padding:18px;
-   /* min-height: calc(60vh);
+    min-height: calc(60vh);
     max-height: calc(75vh);
-    margin-bottom: calc(var(--ui-height) + 5vh);*/
     overflow:auto;
-    justify-content: center;
-    align-items: center;
-    height: clamp(400px, 70vh, 800px);
+    margin-bottom: calc(var(--ui-height) + 12px);
 }
 
 /* List layout */
@@ -159,7 +156,6 @@ footer{
 .Title{
     text-align: center;
 }
-
 /* Menu buttons */
 .Menu-Item{
     -webkit-appearance:none;
