@@ -1,17 +1,43 @@
 import Header from './components/Header'
 import './App.css'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
+//#region books
+const books = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
+  "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel",
+  "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra",
+  "Nehemiah", "Esther", "Job", "Psalms", "Proverbs",
+  "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah", "Lamentations",
+  "Ezekiel", "Daniel", "Hosea", "Joel", "Amos",
+  "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk",
+  "Zephaniah", "Haggai", "Zechariah", "Malachi",
+  "Matthew", "Mark", "Luke", "John", "Acts",
+  "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians",
+  "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians", "1 Timothy",
+  "2 Timothy", "Titus", "Philemon", "Hebrews", "James",
+  "1 Peter", "2 Peter", "1 John", "2 John", "3 John",
+  "Jude", "Revelation"]
 
+  //#endregion
 function App() {
   const [show, toggleShow] = useState('Home');
-
+  const [bibleData, setData] = useState('No Data Available');
   
+  useEffect(() => {
+    const fetchBibleData = async () => {
+      const response = await fetch(`Books/${books[65]}.txt`);
+      const data = await response.text();
+      setData(data);
+    }
+
+    fetchBibleData();
+  }, []);
+
   return (
     <>
   
       
-      <div className="FadeIn">
+      <div>
         <Header/>
       </div>
 
@@ -37,7 +63,8 @@ function App() {
         : ""}
 
         { show == 'Bible' ? 
-          <div id='Bible'>
+          <div id='Bible' class='Center-Top'>
+            {bibleData}
           </div>
         : ""}
 
@@ -62,8 +89,5 @@ function App() {
     </>
   )
 }
-
-
-
 
 export default App

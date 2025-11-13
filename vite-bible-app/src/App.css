@@ -21,6 +21,9 @@ footer {
 
   border-radius: 10px;
 }
+::selection{
+  background-color: #6754b4;
+}
 
 .main {
 
@@ -31,7 +34,7 @@ footer {
 
   align-content: center;
 
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 .list-item{
 
@@ -58,6 +61,7 @@ footer {
   inset: unset;
 }
 
+
 button{
   height: 5vh;
   border-radius: 10px;
@@ -82,3 +86,15 @@ button:active{
 		opacity: 1;
 	}
 }
+.Center-Top{
+  justify-self: center;
+
+  margin-top: 2vh;
+  margin-bottom: 2vh;
+  width: 20vw;
+  text-align: center;
+  line-height: 2;
+
+  text-shadow: 0px 3px 4px #000000;
+}
+
