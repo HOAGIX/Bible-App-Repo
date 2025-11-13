@@ -72,10 +72,11 @@ button:focus, .Menu-Item:focus, .list-item:focus{
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     padding:18px;
-    min-height: calc(60vh);
-    max-height: calc(75vh);
+    height: clamp(30vh, 50vh, 70vh);
+   /* max-height: calc(75vh);*/
     overflow:auto;
-    margin-bottom: calc(var(--ui-height) + 12px);
+    margin-bottom: 4vh;
+    /*margin-bottom: calc(var(--ui-height) + 12px);*/
 }
 
 /* List layout */
