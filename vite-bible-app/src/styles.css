@@ -154,6 +154,9 @@ footer{
     z-index:40;
 }
 
+.Title{
+    text-align: center;
+}
 /* Menu buttons */
 .Menu-Item{
     -webkit-appearance:none;

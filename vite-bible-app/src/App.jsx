@@ -3,7 +3,7 @@ import Header from './components/Header'
 import './styles.css'
 import { useState, useEffect } from 'react';
 
-//#region books
+//#region books From https://trulyfreebible.com/
 const books = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
   "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel",
   "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra",
@@ -38,7 +38,7 @@ function App() {
     <>
   
       
-      <div>
+      <div className="Title">
         <Header/>
       </div>
 
@@ -71,13 +71,13 @@ function App() {
 
         { show == 'Quiz' ? 
           <div id='Quiz'>
-
+            Still Working On
           </div>
         : ""}
 
         { show == 'Search' ? 
           <div id='Search'>
-
+            Still Working On
           </div>
         : ""}
       </div>
