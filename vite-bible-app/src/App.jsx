@@ -19,14 +19,19 @@ const books = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
   "1 Peter", "2 Peter", "1 John", "2 John", "3 John",
   "Jude", "Revelation"]
 
+  let bookIndex = 0;
   //#endregion
 function App() {
   const [show, toggleShow] = useState('Home');
   const [bibleData, setData] = useState('No Data Available');
   
+  const [currentBook, setCurrentBook] = useState('Genesis'); //Genesis as starting book
+ 
+
   useEffect(() => {
     const fetchBibleData = async () => {
-      const response = await fetch(`Books/${books[65]}.txt`);
+      //Set to Revelation for testing
+      const response = await fetch(`Books/${currentBook}.txt`);
       const data = await response.text();
       setData(data);
     }
@@ -64,9 +69,16 @@ function App() {
         : ""}
 
         { show == 'Bible' ? 
-          <div id='Bible' class='Center-Top'>
-            {bibleData}
+        <div className='Bible-Section'>
+          <div id='Bible' className='Center-Top'>
+            <p>{bibleData}</p>
           </div>
+            <div className='Switch-Book'>
+              <button onClick={() => {subToIndex(); setCurrentBook(books[bookIndex])}}>⬅️</button>
+              <h3>{currentBook}</h3>
+              <button onClick={() => {addToIndex(); setCurrentBook(books[bookIndex])}}>➡️</button>
+            </div>
+        </div>
         : ""}
 
         { show == 'Quiz' ? 
@@ -80,6 +92,8 @@ function App() {
             Still Working On
           </div>
         : ""}
+
+
       </div>
       <footer>
         <button className='Menu-Item' onClick={() => toggleShow('Home')}>🏠</button>
@@ -91,7 +105,19 @@ function App() {
   )
 }
 //fetch('Test.txt') no need for other //'s because it is public 
-
-
+function addToIndex() {
+  if (bookIndex < books.length - 1) {
+    bookIndex++;
+  } else {
+    bookIndex = 0;
+  }
+}
+function subToIndex() {
+  if (bookIndex > 0) {
+    bookIndex--;
+  } else {
+    bookIndex = books.length - 1;
+  }
+}
 
 export default App

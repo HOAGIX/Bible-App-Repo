@@ -35,6 +35,7 @@ footer {
   align-content: center;
 
   overflow-y: auto;
+  scroll-behavior:smooth;
 }
 .list-item{
 
