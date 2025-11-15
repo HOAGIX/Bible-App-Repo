@@ -31,6 +31,8 @@ function App() {
   const [currentBook, setCurrentBook] = useState('Genesis'); //Genesis as starting book
   const [trigger, setTrigger] = useState(true);
   const [currentBookData, setCurrentBookData] = useState("No Data Loaded");
+  
+
   useEffect(() => {
     if(bookDataCache[bookIndex] !== undefined){
       setCurrentBookData(bookDataCache[bookIndex]);
