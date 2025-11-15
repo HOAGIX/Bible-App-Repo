@@ -2,6 +2,7 @@ import Header from './components/Header'
 //import './App.css'
 import './styles.css'
 import { useState, useEffect } from 'react';
+import questions from './quiz';
 
 //#region books From https://trulyfreebible.com/
 const books = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
@@ -60,6 +61,29 @@ function App() {
     fetchBibleData();
     setTrigger(false);
   }, [trigger]);
+  const [questionIndex, setQuestionIndex] = useState(0);
+
+  const [buttonStyles, setButtonStyles] = useState(Array(4).fill('#4a6fa5')); // initial color
+
+  const checkQuestion = (index) => {
+    const newStyles = [];
+
+    if (questions[questionIndex].answerOptions[index].isCorrect) {
+      newStyles[index] = 'green';
+    } else {
+      newStyles[index] = 'red';
+    }
+
+    setButtonStyles(newStyles);
+
+    // reset after 1 second
+    setTimeout(() => {
+      setButtonStyles(Array(4).fill('#4a6fa5'));
+
+      // move to next question
+      setQuestionIndex((prevIndex) => (prevIndex + 1) % questions.length);
+    }, 1000);
+  };
 
   return (
     <>
@@ -103,8 +127,16 @@ function App() {
         : ""}
 
         { show == 'Quiz' ? 
+        
           <div id='Quiz'>
-            Still Working On
+            <h1 className='section-title'>Quiz Time!</h1>
+            <h2 id='question' className='question'>{questions[questionIndex].questionText}</h2>
+            <div id="answer-buttons">
+              <button style={{backgroundColor: buttonStyles[0]}} className='answer-btn' onClick={() => checkQuestion(0)}>{questions[questionIndex].answerOptions[0].answerText}</button>
+              <button style={{backgroundColor: buttonStyles[1]}}  className='answer-btn' onClick={() => checkQuestion(1)}>{questions[questionIndex].answerOptions[1].answerText}</button>
+              <button style={{backgroundColor: buttonStyles[2]}}  className='answer-btn' onClick={() => checkQuestion(2)}>{questions[questionIndex].answerOptions[2].answerText}</button>
+              <button style={{backgroundColor: buttonStyles[3]}} className='answer-btn' onClick={() => checkQuestion(3)}>{questions[questionIndex].answerOptions[3].answerText}</button>
+            </div>
           </div>
         : ""}
 
@@ -119,7 +151,7 @@ function App() {
       <footer>
         <button className='Menu-Item' onClick={() => toggleShow('Home')}>🏠</button>
         <button className='Menu-Item' onClick={() => toggleShow('Bible')}>📖</button>
-        <button className='Menu-Item' onClick={() => toggleShow('Quiz')}>✅</button>
+        <button className='Menu-Item' onClick={() => {toggleShow('Quiz')}}>✅</button>
         <button className='Menu-Item' onClick={() => toggleShow('Search')}>🔍</button>
       </footer>
     </>
@@ -141,5 +173,7 @@ function subToIndex() {
     bookIndex = books.length - 1;
   }
 }
+
+
 
 export default App
