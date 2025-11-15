@@ -39,8 +39,11 @@ function App() {
     const fetchBibleData = async () => {
       //Set to Revelation for testing
       const response = await fetch(`Books/${currentBook}.txt`);
+      let text = await response.text();
+      const pattern = new RegExp(`${currentBook}\\s*\\d+`, "g");
 
-      const data = (await response.text()).replace('/\$\{' + currentBook + '\} (\d+)/g', '<h1> /\$\{' + currentBook + '\} (\d+)/g </h1>');
+
+      const data = text.replace(pattern, match => `<h2>${match}</h2>`);
       bookDataCache[bookIndex] = data;
       setCurrentBookData(bookDataCache[bookIndex]);
     }
@@ -79,8 +82,7 @@ function App() {
 
         { show == 'Bible' ? 
         <div className='Bible-Section'>
-          <div id='Bible' className='Center-Top'>
-            <p>{currentBookData}</p>
+          <div id='Bible' className='Center-Top' dangerouslySetInnerHTML={{ __html: currentBookData }}>
           </div>
             <div className='Switch-Book'>
               <button onClick={() => {subToIndex(); setCurrentBook(books[bookIndex]); setTrigger(true);}}>⬅️</button>
