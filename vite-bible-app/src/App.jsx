@@ -1,8 +1,8 @@
 import Header from './components/Header'
 //import './App.css'
 import './styles.css'
-import { useState, useEffect } from 'react';
-import questions from './quiz';
+import { useState, useEffect, use } from 'react';
+import {multipleChoiceQuestions, matchQuestions} from './quiz';
 
 //#region books From https://trulyfreebible.com/
 const books = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
@@ -31,7 +31,43 @@ function App() {
   const [currentBook, setCurrentBook] = useState('Genesis'); //Genesis as starting book
   const [trigger, setTrigger] = useState(true);
   const [currentBookData, setCurrentBookData] = useState("No Data Loaded");
-  
+
+  const [useMultipleChoice, setUseMultipleChoice] = useState(true);
+
+  const ShowQuiz = () => {
+    return (
+      <> 
+        <input type="checkbox" id="quiz-type" checked={useMultipleChoice} onChange={() => setUseMultipleChoice(!useMultipleChoice)} />
+          <label htmlFor="quiz-type">Use Multiple Choice Questions</label>
+      </>,
+
+       useMultipleChoice == true ? (
+        <>
+          <h1 className='section-title'>Quiz Time!</h1>
+          <h2 id='question' style={{fontSize: 'x-large'}} className='question'>{multipleChoiceQuestions[questionIndex].questionText}</h2>
+          <div id="answer-buttons">
+            <button style={{backgroundColor: buttonStyles[0]}} className='answer-btn' onClick={() => checkQuestion(0)}>{multipleChoiceQuestions[questionIndex].answerOptions[0].answerText}</button>
+            <button style={{backgroundColor: buttonStyles[1]}}  className='answer-btn' onClick={() => checkQuestion(1)}>{multipleChoiceQuestions[questionIndex].answerOptions[1].answerText}</button>
+            <button style={{backgroundColor: buttonStyles[2]}}  className='answer-btn' onClick={() => checkQuestion(2)}>{multipleChoiceQuestions[questionIndex].answerOptions[2].answerText}</button>
+            <button style={{backgroundColor: buttonStyles[3]}} className='answer-btn' onClick={() => checkQuestion(3)}>{multipleChoiceQuestions[questionIndex].answerOptions[3].answerText}</button>
+          </div>
+        </>
+      ) : (
+      <>
+          <h1 className='section-title'>Quiz Time!</h1>
+          <h2 id='question' style={{fontSize: 'large'}} className='question'>{matchQuestions[questionIndex].questionText}</h2>
+          <div id="answer-buttons">
+            <button style={{backgroundColor: buttonStyles[0]}} className='answer-btn' onClick={() => checkQuestion(0)}>{matchQuestions[questionIndex].answerOptions[0].answerText}</button>
+            <button style={{backgroundColor: buttonStyles[1]}}  className='answer-btn' onClick={() => checkQuestion(1)}>{matchQuestions[questionIndex].answerOptions[1].answerText}</button>
+            <button style={{backgroundColor: buttonStyles[2]}}  className='answer-btn' onClick={() => checkQuestion(2)}>{matchQuestions[questionIndex].answerOptions[2].answerText}</button>
+            <button style={{backgroundColor: buttonStyles[3]}} className='answer-btn' onClick={() => checkQuestion(3)}>{matchQuestions[questionIndex].answerOptions[3].answerText}</button>
+          </div>
+      </>
+      )
+
+    );
+  }
+
 
   useEffect(() => {
     if(bookDataCache[bookIndex] !== undefined){
@@ -70,11 +106,20 @@ function App() {
   const checkQuestion = (index) => {
     const newStyles = [];
 
-    if (questions[questionIndex].answerOptions[index].isCorrect) {
-      newStyles[index] = 'green';
-    } else {
-      newStyles[index] = 'red';
-    }
+    if(useMultipleChoice){
+      if (multipleChoiceQuestions[questionIndex].answerOptions[index].isCorrect) {
+        newStyles[index] = 'green';
+      } else {
+        newStyles[index] = 'red';
+      }
+      } else {
+          if (matchQuestions[questionIndex].answerOptions[index].isCorrect) {
+            newStyles[index] = 'green';
+          } else {
+            newStyles[index] = 'red';
+          }
+      }
+      
 
     setButtonStyles(newStyles);
 
@@ -83,7 +128,7 @@ function App() {
       setButtonStyles(Array(4).fill('#4a6fa5'));
 
       // move to next question
-      setQuestionIndex((prevIndex) => (prevIndex + 1) % questions.length);
+      setQuestionIndex((prevIndex) => (prevIndex + 1) % multipleChoiceQuestions.length);
     }, 1000);
   };
 
@@ -117,44 +162,44 @@ function App() {
         : ""}
 
         { show == 'Bible' ? 
-        <div className='Bible-Section'>
-          <div id='Bible' className='Center-Top' dangerouslySetInnerHTML={{ __html: currentBookData }}>
-          </div>
-            <div className='Switch-Book'>
-              <button onClick={() => {subToIndex(); setCurrentBook(books[bookIndex]); setTrigger(true);}}>⬅️</button>
-              <h3>{currentBook}</h3>
-              <button onClick={() => {addToIndex(); setCurrentBook(books[bookIndex]); setTrigger(true);}}>➡️</button>
+          <div className='Bible-Section'>
+            <div id='Bible' className='Center-Top' dangerouslySetInnerHTML={{ __html: currentBookData }}>
             </div>
-        </div>
+              <div className='Switch-Book'>
+                <button onClick={() => {subToIndex(); setCurrentBook(books[bookIndex]); setTrigger(true);}}>⬅️</button>
+                <h3>{currentBook}</h3>
+                <button onClick={() => {addToIndex(); setCurrentBook(books[bookIndex]); setTrigger(true);}}>➡️</button>
+              </div>
+            {currentBookData}
+          </div>
         : ""}
 
         { show == 'Quiz' ? 
-        
+          
           <div id='Quiz'>
-            <h1 className='section-title'>Quiz Time!</h1>
-            <h2 id='question' className='question'>{questions[questionIndex].questionText}</h2>
-            <div id="answer-buttons">
-              <button style={{backgroundColor: buttonStyles[0]}} className='answer-btn' onClick={() => checkQuestion(0)}>{questions[questionIndex].answerOptions[0].answerText}</button>
-              <button style={{backgroundColor: buttonStyles[1]}}  className='answer-btn' onClick={() => checkQuestion(1)}>{questions[questionIndex].answerOptions[1].answerText}</button>
-              <button style={{backgroundColor: buttonStyles[2]}}  className='answer-btn' onClick={() => checkQuestion(2)}>{questions[questionIndex].answerOptions[2].answerText}</button>
-              <button style={{backgroundColor: buttonStyles[3]}} className='answer-btn' onClick={() => checkQuestion(3)}>{questions[questionIndex].answerOptions[3].answerText}</button>
-            </div>
+            <label class="checkbox-container">
+              <input type="checkbox" checked onChange={() => setUseMultipleChoice(!useMultipleChoice)}/>
+              <span class="checkmark"></span>
+              Multiple Choice Questions
+            </label>
+            {ShowQuiz()}
           </div>
         : ""}
 
-        { show == 'Search' ? 
-          <div id='Search'>
-            Still Working On
-          </div>
+        { show == 'More' ? 
+        <div id='More'>
+          More Section
+        </div>
         : ""}
 
 
       </div>
       <footer>
+        
         <button className='Menu-Item' onClick={() => toggleShow('Home')}>🏠</button>
         <button className='Menu-Item' onClick={() => toggleShow('Bible')}>📖</button>
         <button className='Menu-Item' onClick={() => {toggleShow('Quiz')}}>✅</button>
-        <button className='Menu-Item' onClick={() => toggleShow('Search')}>🔍</button>
+        <button className='Menu-Item' onClick={() => toggleShow('More')}>📶</button>
       </footer>
     </>
   )
@@ -175,7 +220,5 @@ function subToIndex() {
     bookIndex = books.length - 1;
   }
 }
-
-
 
 export default App

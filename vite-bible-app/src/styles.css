@@ -148,7 +148,7 @@ footer {
   color: white;
   font-size: x-large;
 }
-.bibleSection{
+.Bible-Section{
   margin-bottom: 4vh;
 }
 .Switch-Book button{
@@ -181,7 +181,6 @@ footer {
   border-bottom: .5px solid #333;
   padding-bottom: 30px;
 }
-
 .section-title {
   color: #7696c5;
   font-size: xxx-large;
@@ -314,5 +313,143 @@ footer {
   }
   .Title {
     padding-top: 50px;
+  }
+}
+.checkbox-container {
+  display: flex;
+  align-items: center;
+
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  font-size: 1rem;
+  gap: 10px;
+  position: relative;
+
+  font-size: larger;
+  font-weight: bolder;
+}
+
+/* Hide the real checkbox */
+.checkbox-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Custom box */
+.checkmark {
+  height: 22px;
+  width: 22px;
+  border-radius: 5px;
+  border: 2px solid #555;
+  display: inline-block;
+  transition: 0.2s;
+}
+
+/* Checked state */
+.checkbox-container input:checked + .checkmark {
+  background-color: #4caf50;
+  border-color: #4caf50;
+}
+
+/* Checkmark tick */
+.checkmark::after {
+  content: "";
+  position: absolute;
+  display: none;
+  width: 6px;
+  height: 12px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+/* Container that puts input + button on one line */
+#Search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  columns: 2;
+  width: 100%;           /* almost full screen width on mobile */
+  margin: 0 auto;       /* center on smaller screens */
+  padding: 6px;
+  border-radius: 12px;
+}
+.search-results {
+  margin-top: 20px;
+  background-color: #ffffff; /* White background for results */
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(108,122,137,0.2);
+  color: #2c3e50; /* Dark slate blue for text */
+  font-size: 1rem;
+  line-height: 1.5;
+  min-height: 100px;      /* ensure some height even with no results */
+}
+/* Search input */
+.search-bar {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #d4d4d4;
+  border-radius: 10px;
+  font-size: 1rem;       /* scales better on mobile */
+  outline: none;
+  background: #fafafa;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+
+  color: #000;
+  font-weight: bold;
+
+  min-height: 44px;      /* Apple recommends 44px touch target */
+}
+
+/* Focus styling */
+.search-bar:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 6px rgba(74, 144, 226, 0.25);
+}
+
+/* Search button */
+.search-btn {
+  background-color: #4a6fa5;
+  color: white;
+  border: none;
+  border-radius: 10px;
+
+  padding: 0 12px;
+  min-width: 44px;       /* Apple touch target */
+  height: 44px;          /* Apple touch target */
+  font-size: 1.25rem;    /* emoji or icon size */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  transition: background 0.25s ease, transform 0.15s ease;
+}
+
+/* Button hover & active states */
+.search-btn:hover {
+  background-color: #3e5f8a;
+  scale: 1.0;
+  transition: scale 0.2s ease;
+  scale: 1.2;
+}
+.search-btn:active {
+  background-color: #355378;
+  scale: 1.2;
+  transition: scale 0.2s ease;
+  scale: 1.0;
+}
+
+/* Small screen tweaks */
+@media (max-width: 375px) {
+  .search-bar {
+    font-size: 0.95rem;
+    padding: 10px 12px;
+  }
+  .search-btn {
+    font-size: 1.1rem;
+    padding: 0 10px;
   }
 }
