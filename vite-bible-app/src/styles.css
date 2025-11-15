@@ -20,13 +20,13 @@ body {
 .Title {
   background-color: #4a6fa5; /* Muted blue */
   color: #f0f4f8; /* Very light grey */
-  padding: 1rem;
   text-align: center;
   font-size: 1.8rem;
   font-weight: bold;
   letter-spacing: 1px;
   user-select: none;
   box-shadow: 0 2px 5px rgba(74,111,165,0.5);
+  
 }
 
 /* Main content area */
@@ -69,7 +69,7 @@ box-shadow: 0px 10px 12px 2px #000000;
   background-color: #ffffff;
   border-radius: 8px;
   padding: 1rem;
-  max-height: 60vh;
+  max-height: 50vh;
   overflow-y: auto;
   box-shadow: 0 2px 8px rgba(108,122,137,0.2);
   font-size: 1rem;
@@ -77,6 +77,8 @@ box-shadow: 0px 10px 12px 2px #000000;
   white-space: pre-wrap;
   user-select: text;
   color: #2c3e50;
+
+
 }
 
 /* Simple text container for unready features */
@@ -136,7 +138,6 @@ footer {
   justify-content: center;
   align-items: center;
   gap: 1rem;
-  margin-top: 1rem;
 
   color: white;
   font-size: x-large;

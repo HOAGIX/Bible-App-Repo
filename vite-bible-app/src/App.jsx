@@ -21,23 +21,31 @@ const books = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
 
   let bookIndex = 0;
   //#endregion
+let bookDataCache = [];
+
+
 function App() {
   const [show, toggleShow] = useState('Home');
-  const [bibleData, setData] = useState('No Data Available');
   
   const [currentBook, setCurrentBook] = useState('Genesis'); //Genesis as starting book
- 
-
+  const [trigger, setTrigger] = useState(true);
+  const [currentBookData, setCurrentBookData] = useState("No Data Loaded");
   useEffect(() => {
+    if(bookDataCache[bookIndex] !== undefined){
+      setCurrentBookData(bookDataCache[bookIndex]);
+      setTrigger(false);
+      return;
+    }
     const fetchBibleData = async () => {
       //Set to Revelation for testing
       const response = await fetch(`Books/${currentBook}.txt`);
       const data = await response.text();
-      setData(data);
+      bookDataCache[bookIndex] = data;
+      setCurrentBookData(bookDataCache[bookIndex]);
     }
-
     fetchBibleData();
-  }, []);
+    setTrigger(false);
+  }, [trigger]);
 
   return (
     <>
@@ -71,12 +79,12 @@ function App() {
         { show == 'Bible' ? 
         <div className='Bible-Section'>
           <div id='Bible' className='Center-Top'>
-            <p>{bibleData}</p>
+            <p>{currentBookData}</p>
           </div>
             <div className='Switch-Book'>
-              <button onClick={() => {subToIndex(); setCurrentBook(books[bookIndex])}}>⬅️</button>
+              <button onClick={() => {subToIndex(); setCurrentBook(books[bookIndex]); setTrigger(true);}}>⬅️</button>
               <h3>{currentBook}</h3>
-              <button onClick={() => {addToIndex(); setCurrentBook(books[bookIndex])}}>➡️</button>
+              <button onClick={() => {addToIndex(); setCurrentBook(books[bookIndex]); setTrigger(true);}}>➡️</button>
             </div>
         </div>
         : ""}
@@ -111,6 +119,7 @@ function addToIndex() {
   } else {
     bookIndex = 0;
   }
+
 }
 function subToIndex() {
   if (bookIndex > 0) {
