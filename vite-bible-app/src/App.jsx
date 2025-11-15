@@ -40,10 +40,20 @@ function App() {
       //Set to Revelation for testing
       const response = await fetch(`Books/${currentBook}.txt`);
       let text = await response.text();
-      const pattern = new RegExp(`${currentBook}\\s*\\d+`, "g");
 
+     /* const pattern = new RegExp(`${currentBook}\\s*\\d+`, "g");
+      const secondPattern = new RegExp(`(${currentBook}\\s*\\d+)\\s+(.*?)(?=\\s*\\d)`, "gi");
+      let headerReplaced = text.replace(pattern, match => `<h2>${match}</h2>`);
+      const data = headerReplaced.replace(secondPattern, match => `<h3>${match}</h3>`);
+*/
+      const pattern = new RegExp( // Creates a spacing between chapter, verses, and headers
+        `(${currentBook}\\s*\\d+)\\s+(.*?)(?=\\d)`,
+        "gis"
+      );
+      const data = text.replace(pattern, (match, p1, p2) => {
+        return `<h2>${p1}</h2> <h3>${p2}</h3>`;
+      });
 
-      const data = text.replace(pattern, match => `<h2>${match}</h2>`);
       bookDataCache[bookIndex] = data;
       setCurrentBookData(bookDataCache[bookIndex]);
     }
