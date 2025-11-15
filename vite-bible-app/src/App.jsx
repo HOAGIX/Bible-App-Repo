@@ -39,7 +39,8 @@ function App() {
     const fetchBibleData = async () => {
       //Set to Revelation for testing
       const response = await fetch(`Books/${currentBook}.txt`);
-      const data = await response.text();
+
+      const data = (await response.text()).replace('/\$\{' + currentBook + '\} (\d+)/g', '<h1> /\$\{' + currentBook + '\} (\d+)/g </h1>');
       bookDataCache[bookIndex] = data;
       setCurrentBookData(bookDataCache[bookIndex]);
     }
