@@ -87,22 +87,6 @@ function App() {
     }, 1000);
   };
 
-
-  const GetQuiz = () => { 
-    return (
-      <div id='Quiz'>
-        <h1 className='section-title'>Quiz Time!</h1>
-        <h2 id='question' className='question'>{questions[questionIndex].questionText}</h2>
-        <div id="answer-buttons">
-          <button style={{backgroundColor: buttonStyles[0]}} className='answer-btn' onClick={() => checkQuestion(0)}>{questions[questionIndex].answerOptions[0].answerText}</button>
-          <button style={{backgroundColor: buttonStyles[1]}}  className='answer-btn' onClick={() => checkQuestion(1)}>{questions[questionIndex].answerOptions[1].answerText}</button>
-          <button style={{backgroundColor: buttonStyles[2]}}  className='answer-btn' onClick={() => checkQuestion(2)}>{questions[questionIndex].answerOptions[2].answerText}</button>
-          <button style={{backgroundColor: buttonStyles[3]}} className='answer-btn' onClick={() => checkQuestion(3)}>{questions[questionIndex].answerOptions[3].answerText}</button>
-        </div>
-      </div>
-    );
-  }  
-
   return (
     <>
   
@@ -145,7 +129,17 @@ function App() {
         : ""}
 
         { show == 'Quiz' ? 
-          { GetQuiz }      
+        
+          <div id='Quiz'>
+            <h1 className='section-title'>Quiz Time!</h1>
+            <h2 id='question' className='question'>{questions[questionIndex].questionText}</h2>
+            <div id="answer-buttons">
+              <button style={{backgroundColor: buttonStyles[0]}} className='answer-btn' onClick={() => checkQuestion(0)}>{questions[questionIndex].answerOptions[0].answerText}</button>
+              <button style={{backgroundColor: buttonStyles[1]}}  className='answer-btn' onClick={() => checkQuestion(1)}>{questions[questionIndex].answerOptions[1].answerText}</button>
+              <button style={{backgroundColor: buttonStyles[2]}}  className='answer-btn' onClick={() => checkQuestion(2)}>{questions[questionIndex].answerOptions[2].answerText}</button>
+              <button style={{backgroundColor: buttonStyles[3]}} className='answer-btn' onClick={() => checkQuestion(3)}>{questions[questionIndex].answerOptions[3].answerText}</button>
+            </div>
+          </div>
         : ""}
 
         { show == 'Search' ? 
@@ -181,6 +175,7 @@ function subToIndex() {
     bookIndex = books.length - 1;
   }
 }
+
 
 
 export default App
