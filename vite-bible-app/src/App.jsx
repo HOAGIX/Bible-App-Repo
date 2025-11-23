@@ -57,22 +57,19 @@ function App() {
   );
 }
 // region Bible Section
-function formatBibleText(currentBook, rawText) {
+function formatBibleText(currentBook, rawText, annotations = {}) {
   const lines = rawText.split(/\r?\n/);
   let html = "";
   let currentChapter = null;
 
-  // Match chapter header, e.g., "Leviticus 1"
   const chapterHeader = new RegExp(`^${currentBook}\\s+(\\d+)$`, "i");
-
-  // Match verses: number followed by text
-  const versePatternGlobal = /(\d+)\s*([^0-9]+)/g;
+  const versePattern = /^(\d+)(.*)$/;
 
   lines.forEach(line => {
     const trimmed = line.trim();
     if (!trimmed) return;
 
-    // ---- CHAPTER DETECT ----
+    // Chapter header
     const chapterMatch = trimmed.match(chapterHeader);
     if (chapterMatch) {
       currentChapter = chapterMatch[1];
@@ -80,56 +77,80 @@ function formatBibleText(currentBook, rawText) {
       return;
     }
 
-    // ---- VERSE DETECT ----
-    let verseMatches = [...trimmed.matchAll(versePatternGlobal)];
+    // Verse
+    const verseMatch = trimmed.match(versePattern);
+    if (verseMatch) {
+      const verseNum = verseMatch[1];
+      let verseText = verseMatch[2];
+      if (verseText && !verseText.startsWith(" ")) verseText = " " + verseText;
 
-    if (verseMatches.length) {
-      verseMatches.forEach(match => {
-        const verseNum = match[1];
-        let verseText = match[2].trim();
+      const verseKey = `${currentChapter}:${verseNum}`;
+      const note = annotations[currentBook]?.[verseKey] || "";
 
-        // Add space if missing
-        if (verseText && !verseText.startsWith(" ")) verseText = " " + verseText;
-
-        html += `
-          <div class="verse-line">
-            <span class="verse-number">${verseNum}</span>${verseText}
-          </div>
-        `;
-      });
-    } else {
-      // ---- FALLBACK ----
-      html += `<div class="verse-line">${trimmed}</div>`;
+      html += `
+        <div class="verse-line" data-verse="${verseKey}">
+          <span class="verse-number">${verseNum}</span>${verseText}
+          <button class="annotate-btn">✏️</button>
+          ${note ? `<div class="verse-annotation">${note}</div>` : ""}
+        </div>
+      `;
+      return;
     }
+
+    html += `<div class="verse-line">${trimmed}</div>`;
   });
 
   return html;
 }
 
+
 function BibleSection() {
   const [currentBook, setCurrentBook] = useState('Genesis'); 
   const [currentBookData, setCurrentBookData] = useState("No Data Loaded");
 
-  useEffect(() => {
-    const fetchBibleData = async () => {
-      if (bookDataCache[bookIndex]) {
-        setCurrentBookData(bookDataCache[bookIndex]);
-        scrollToTop();
-        return;
-      }
+  const [annotations, setAnnotations] = useState(() => {
+    return JSON.parse(localStorage.getItem('bibleAnnotations') || '{}');
+  });
 
+  const addAnnotation = (verseKey) => {
+      const note = prompt("Enter your annotation:", annotations[currentBook]?.[verseKey] || "");
+      if (note !== null) {
+        setAnnotations(prev => {
+          const updated = { ...prev };
+          if (!updated[currentBook]) updated[currentBook] = {};
+          updated[currentBook][verseKey] = note;
+          localStorage.setItem("bibleAnnotations", JSON.stringify(updated));
+          return updated;
+        });
+      }
+    };
+
+    useEffect(() => {
+    const fetchBibleData = async () => {
       const response = await fetch(`Books/${currentBook}.txt`);
       const text = await response.text();
-
-      const formattedData = formatBibleText(currentBook, text);
-
-      bookDataCache[bookIndex] = formattedData;
+      const formattedData = formatBibleText(currentBook, text, annotations);
       setCurrentBookData(formattedData);
-      scrollToTop();
     };
 
     fetchBibleData();
-  }, [currentBook]);
+  }, [currentBook, annotations]);
+  
+  useEffect(() => {
+    const bibleDiv = document.getElementById("Bible");
+    if (!bibleDiv) return;
+
+    const buttons = bibleDiv.querySelectorAll(".annotate-btn");
+
+    buttons.forEach((btn) => {
+      btn.onclick = () => {
+        const verseDiv = btn.closest(".verse-line");
+        const verseKey = verseDiv.dataset.verse;
+        addAnnotation(verseKey);
+      };
+    });
+  }, [currentBookData]);
+
 
   const scrollToTop = () => {
     const bibleDiv = document.getElementById("Bible");
@@ -139,11 +160,13 @@ function BibleSection() {
   const goNextBook = () => {
     addToIndex();
     setCurrentBook(books[bookIndex]);
+    scrollToTop();
   };
 
   const goPrevBook = () => {
     subToIndex();
     setCurrentBook(books[bookIndex]);
+    scrollToTop();
   };
 
   return (

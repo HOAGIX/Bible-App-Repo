@@ -213,6 +213,28 @@
     margin-top: 0.8rem;
   }
 }
+.verse-annotation {
+  font-size: 0.85rem;
+  color: #ffd700; /* gold color */
+  margin-left: 1.5rem;
+  margin-top: 0.2rem;
+}
+.annotate-btn {
+  margin-left: 0.5rem;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-size: 0.85rem;
+}
+.annotate-btn:hover {
+  color: #4a90e2;
+  scale: 1.05;
+  transition: scale ease 0.2s;
+}
+.annotate-btn:active {
+  scale: 1.01;
+  transition: scale ease 0.1s;
+}
 
 /* ---------- Switch Book Buttons ---------- */
 .Switch-Book {
