@@ -290,7 +290,7 @@ function Mainsection() {
         <li className='list-item'>
           <h3>{currentDevotion?.purpose || 'No purpose available'}</h3>
         </li>
-        <li className='list-item' style={{ listStyle: 'none', width: '100%' }}>
+        <li className='list-item'>
           <div style={{ width: '100%', maxWidth: '640px', margin: '20px auto' }}>
             {currentDevotion?.video ? (
               <ReactPlayer
@@ -313,7 +313,7 @@ function Mainsection() {
           {currentDevotion?.prayer || 'No prayer available'}
         </li>
         <li className='list-item'>
-          {currentDevotion?.author || 'No author available'}
+          <h4>{currentDevotion?.author || 'No author available'}</h4>
         </li>
     </div>
   );

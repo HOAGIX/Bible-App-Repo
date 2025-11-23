@@ -14,7 +14,7 @@
   --accent-dark: #1f78d1;
   --accent-hover-dark: #3a9ad9;
   --button-text-dark: #fff;
-  --card-dark: rgba(30, 30, 30, 0.7);
+  --card-dark: rgba(44, 44, 44, 0.7);
   
   /* General */
   --radius: 12px;
@@ -108,8 +108,12 @@
   align-items: center;
   width: 100%;
   max-width: 500px;
+  /* remove fixed min-width for mobile */
+  box-sizing: border-box;
+  padding: 0 1rem;
 }
 
+/* Bible container */
 #Bible {
   width: 100%;
   height: 60vh;
@@ -119,25 +123,26 @@
   background-color: var(--card-dark);
   backdrop-filter: blur(var(--blur));
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-sizing: border-box;
+  word-wrap: break-word;   /* ensure text wraps */
 }
 
-.body.light #Bible {
-  background-color: var(--card-light);
-}
+/* Responsive adjustments for small screens */
+@media (max-width: 480px) {
+  .Bible-Section {
+    max-width: 100%;   /* allow full width */
+    padding: 0 0.5rem; /* reduce side padding */
+  }
 
-.verse-number {
-  font-weight: bold;
-  margin-right: 0.2rem;
-  color: var(--accent-dark);
-}
+  #Bible {
+    height: 55vh;       /* slightly smaller height */
+    padding: 0.8rem;    /* reduce inner padding */
+    font-size: 0.95rem; /* smaller text for mobile */
+  }
 
-.body.light .verse-number {
-  color: var(--accent-light);
-}
-
-.verse-block {
-  margin-bottom: 0.5rem;
-  line-height: 1.5;
+  .verse-number {
+    font-size: 0.85rem;  /* smaller verse numbers */
+  }
 }
 
 /* ---------- Switch Book Buttons ---------- */
