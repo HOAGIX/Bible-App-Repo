@@ -3,6 +3,8 @@ import Header from './components/Header'
 import './styles.css'
 import { useState, useEffect, use } from 'react';
 import {multipleChoiceQuestions, matchQuestions} from './quiz';
+import React from 'react';
+import ReactPlayer from 'react-player';
 
 import { Devotion } from './classes.jsx';
 
@@ -220,74 +222,94 @@ function QuizSection() {
 }
 
 function Mainsection() {
-
-const [devotions, setDevotions] = useState([]);
-const [devotionIndex, setDevotionIndex] = useState(0);
+  const [devotions, setDevotions] = useState([]);
+  const [devotionIndex, setDevotionIndex] = useState(0);
 
   useEffect(() => {
-        const fetchSubmissions = async (formId, apiKey) => {
-          try {
-            const response = await fetch(`https://api.jotform.com/form/${formId}/submissions?apiKey=${apiKey}`);
-            const data = await response.json();
+    const fetchSubmissions = async (formId, apiKey) => {
+      try {
+        const response = await fetch(
+          `https://api.jotform.com/form/${formId}/submissions?apiKey=${apiKey}`
+        );
+        const data = await response.json();
 
-            console.log("Response data:", data);
-            
-            if (!data.content) {
-              console.error("No submissions found in the response.");
-              return null;
+        if (!data.content) {
+          console.error("No submissions found in the response.");
+          return;
+        }
+
+        const approvedDevotions = data.content
+          .filter(
+            sub =>
+              (sub.status === "ACTIVE" || sub.status === "CUSTOM") &&
+              sub.answers &&
+              sub.answers['15']?.answer === "Approved"
+          )
+          .map(submission => {
+            const purpose = submission.answers['10']?.answer || '';
+            let videoAnswer = submission.answers['22']?.answer || '';
+            const writtentext = submission.answers['5']?.answer || '';
+            const prayer = submission.answers['7']?.answer || '';
+
+            // If it's an array (Jotform file upload), pick the first item
+            if (Array.isArray(videoAnswer)) videoAnswer = videoAnswer[0];
+
+            // If it's a relative file path, prepend Jotform CDN
+            if (videoAnswer && !videoAnswer.startsWith('http')) {
+              videoAnswer = `https://cdn.jotfor.ms/files/${videoAnswer}`;
             }
 
-            data.content
-            .filter(submission => submission.status === "ACTIVE" || submission.status === "CUSTOM")
-            .forEach(submission => {
-              if(submission.answers) {
-                if(submission.answers['15'].answer !== "Approved") {
-                  console.log(`Skipping submission ID ${submission.id} as per answer to question 15.`);
-                  return; // Skip this submission
-                }
-                const purpose = submission.answers['10'].answer;
-                const video = submission.answers['6'].answer;
-                const writtentext = submission.answers['5'].answer;
-                const prayer = submission.answers['7'].answer;
-                const devotion = new Devotion(purpose, video, writtentext, prayer);
-                setDevotions(prevDevotions => [...prevDevotions, devotion]);
-                console.log(devotions);
-              }
-              else {
-                console.warn(`Submission ID ${submission.id} has no answers.`);
-              }
-            });
+            return new Devotion(purpose, videoAnswer, writtentext, prayer);
+          });
 
-            return data.content; // Array of submission objects
-          } catch (error) {
-            console.error("Error fetching Jotform submissions:", error);
-            return null;
-          }
-        };
-        fetchSubmissions(import.meta.env.VITE_FORM_ID, import.meta.env.VITE_API_KEY);
+        console.log("Approved Devotions:", approvedDevotions);
+        setDevotions(approvedDevotions);
+
+      } catch (error) {
+        console.error("Error fetching Jotform submissions:", error);
+      }
+    };
+
+    fetchSubmissions(import.meta.env.VITE_FORM_ID, import.meta.env.VITE_API_KEY);
   }, []);
 
+  if (!devotions.length) {
+    return <p>Loading devotions...</p>;
+  }
+
+  const currentDevotion = devotions[devotionIndex];
+
   return (
-    <div id='Home'>
+    <div id="Home">
       <div className="Title">
-        <Header/>
+        <Header />
       </div>
-      <li className='list-item'>
-        {devotions[devotionIndex]?.purpose || 'Loading Devotion Purpose...'}
-      </li>
-      <li className='list-item'>
-        <video controls width="100%" height="auto">
-          <source src={devotions[devotionIndex]?.video || null} type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
-      </li>
-      <li className='list-item'>
-        <div dangerouslySetInnerHTML={{ __html: devotions[devotionIndex]?.writtentext || 'Loading Devotion Written Text...' }} />
-      </li>
-      <li className='list-item'>
-        {devotions[devotionIndex]?.prayer || 'Loading Devotion Prayer...'}
-      </li>
-  </div>
+        <li className='list-item'>
+          {currentDevotion?.purpose || 'No purpose available'}
+        </li>
+        <li className='list-item' style={{ listStyle: 'none', width: '100%' }}>
+          <div style={{ width: '100%', maxWidth: '640px', margin: '20px auto' }}>
+            {currentDevotion?.video ? (
+              <ReactPlayer
+                key={currentDevotion.video}
+                src={currentDevotion?.video || null}
+                alt="Devotion Video"
+                width="100%"
+                height="240px"
+                controls
+              />
+            ) : (
+              <p>No video available</p>
+            )}
+          </div>
+        </li>
+        <li className='list-item'>
+          <div dangerouslySetInnerHTML={{ __html: currentDevotion?.writtentext || 'No written text' }} />
+        </li>
+        <li className='list-item'>
+          {currentDevotion?.prayer || 'No prayer available'}
+        </li>
+    </div>
   );
 }
 
