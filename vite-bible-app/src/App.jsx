@@ -1,9 +1,10 @@
-import Header from './components/Header';
-import './styles.css';
-import { useState, useEffect } from 'react';
-import { multipleChoiceQuestions, matchQuestions } from './quiz';
+import Header from './components/Header'
+//import './App.css'
+import './styles.css'
+import { useState, useEffect, use } from 'react';
+import {multipleChoiceQuestions, matchQuestions} from './quiz';
 
-//#region Bible Books
+//#region books From https://trulyfreebible.com/
 const books = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
   "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel",
   "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra",
@@ -17,163 +18,207 @@ const books = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
   "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians", "1 Timothy",
   "2 Timothy", "Titus", "Philemon", "Hebrews", "James",
   "1 Peter", "2 Peter", "1 John", "2 John", "3 John",
-  "Jude", "Revelation"];
-let bookIndex = 0;
+  "Jude", "Revelation"]
+
+  let bookIndex = 0;
+  //#endregion
 let bookDataCache = [];
-//#endregion
+
 
 function App() {
   const [show, toggleShow] = useState('Home');
-  const [currentBook, setCurrentBook] = useState('Genesis');
+  
+  const [currentBook, setCurrentBook] = useState('Genesis'); //Genesis as starting book
+  const [trigger, setTrigger] = useState(true);
   const [currentBookData, setCurrentBookData] = useState("No Data Loaded");
+
   const [useMultipleChoice, setUseMultipleChoice] = useState(true);
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [buttonStyles, setButtonStyles] = useState(Array(4).fill('#4a6fa5'));
-  const [theme, setTheme] = useState("dark");
 
-  // Fetch and format Bible text whenever currentBook changes
+  const ShowQuiz = () => {
+    return (
+      <> 
+        <input type="checkbox" id="quiz-type" checked={useMultipleChoice} onChange={() => setUseMultipleChoice(!useMultipleChoice)} />
+          <label htmlFor="quiz-type">Use Multiple Choice Questions</label>
+      </>,
+
+       useMultipleChoice == true ? (
+        <>
+          <h1 className='section-title'>Quiz Time!</h1>
+          <h2 id='question' style={{fontSize: 'x-large'}} className='question'>{multipleChoiceQuestions[questionIndex].questionText}</h2>
+          <div id="answer-buttons">
+            <button style={{backgroundColor: buttonStyles[0]}} className='answer-btn' onClick={() => checkQuestion(0)}>{multipleChoiceQuestions[questionIndex].answerOptions[0].answerText}</button>
+            <button style={{backgroundColor: buttonStyles[1]}}  className='answer-btn' onClick={() => checkQuestion(1)}>{multipleChoiceQuestions[questionIndex].answerOptions[1].answerText}</button>
+            <button style={{backgroundColor: buttonStyles[2]}}  className='answer-btn' onClick={() => checkQuestion(2)}>{multipleChoiceQuestions[questionIndex].answerOptions[2].answerText}</button>
+            <button style={{backgroundColor: buttonStyles[3]}} className='answer-btn' onClick={() => checkQuestion(3)}>{multipleChoiceQuestions[questionIndex].answerOptions[3].answerText}</button>
+          </div>
+        </>
+      ) : (
+      <>
+          <h1 className='section-title'>Quiz Time!</h1>
+          <h2 id='question' style={{fontSize: 'large'}} className='question'>{matchQuestions[questionIndex].questionText}</h2>
+          <div id="answer-buttons">
+            <button style={{backgroundColor: buttonStyles[0]}} className='answer-btn' onClick={() => checkQuestion(0)}>{matchQuestions[questionIndex].answerOptions[0].answerText}</button>
+            <button style={{backgroundColor: buttonStyles[1]}}  className='answer-btn' onClick={() => checkQuestion(1)}>{matchQuestions[questionIndex].answerOptions[1].answerText}</button>
+            <button style={{backgroundColor: buttonStyles[2]}}  className='answer-btn' onClick={() => checkQuestion(2)}>{matchQuestions[questionIndex].answerOptions[2].answerText}</button>
+            <button style={{backgroundColor: buttonStyles[3]}} className='answer-btn' onClick={() => checkQuestion(3)}>{matchQuestions[questionIndex].answerOptions[3].answerText}</button>
+          </div>
+      </>
+      )
+
+    );
+  }
+
+
   useEffect(() => {
+    if(bookDataCache[bookIndex] !== undefined){
+      setCurrentBookData(bookDataCache[bookIndex]);
+      setTrigger(false);
+      return;
+    }
     const fetchBibleData = async () => {
-      if (bookDataCache[currentBook]) {
-        setCurrentBookData(bookDataCache[currentBook]);
-        document.getElementById("Bible")?.scrollTo(0, 0);
-        return;
-      }
-
+      //Set to Revelation for testing
       const response = await fetch(`Books/${currentBook}.txt`);
       let text = await response.text();
 
-      // Format chapters and verses
-      const chapterPattern = new RegExp(`(${currentBook}\\s*\\d+)\\s+([\\s\\S]*?)(?=${currentBook}\\s*\\d+|$)`, "gi");
-
-      const formatted = text.replace(chapterPattern, (match, chapterTitle, chapterText) => {
-        const versesFormatted = chapterText.replace(/(\d+)\s/g, `<span class="verse-number">$1</span> `);
-        return `<h2>${chapterTitle}</h2><div class="verse-block">${versesFormatted}</div>`;
+     /* const pattern = new RegExp(`${currentBook}\\s*\\d+`, "g");
+      const secondPattern = new RegExp(`(${currentBook}\\s*\\d+)\\s+(.*?)(?=\\s*\\d)`, "gi");
+      let headerReplaced = text.replace(pattern, match => `<h2>${match}</h2>`);
+      const data = headerReplaced.replace(secondPattern, match => `<h3>${match}</h3>`);
+*/
+      const pattern = new RegExp( // Creates a spacing between chapter, verses, and headers
+        `(${currentBook}\\s*\\d+)\\s+(.*?)(?=\\d)`,
+        "gis"
+      );
+      const data = text.replace(pattern, (match, p1, p2) => {
+        return `<h2>${p1}</h2> <h3>${p2}</h3>`;
       });
 
-      bookDataCache[currentBook] = formatted;
-      setCurrentBookData(formatted);
-      document.getElementById("Bible")?.scrollTo(0, 0);
-    };
-
+      bookDataCache[bookIndex] = data;
+      setCurrentBookData(bookDataCache[bookIndex]);
+    }
     fetchBibleData();
-  }, [currentBook]);
+    setTrigger(false);
+  }, [trigger]);
+  const [questionIndex, setQuestionIndex] = useState(0);
 
-  const addToIndex = () => {
-    bookIndex = (bookIndex + 1) % books.length;
-    setCurrentBook(books[bookIndex]);
-  };
-
-  const subToIndex = () => {
-    bookIndex = (bookIndex - 1 + books.length) % books.length;
-    setCurrentBook(books[bookIndex]);
-  };
+  const [buttonStyles, setButtonStyles] = useState(Array(4).fill('#4a6fa5')); // initial color
 
   const checkQuestion = (index) => {
     const newStyles = [];
-    const questions = useMultipleChoice ? multipleChoiceQuestions : matchQuestions;
 
-    if (questions[questionIndex].answerOptions[index].isCorrect) {
-      newStyles[index] = 'green';
-    } else {
-      newStyles[index] = 'red';
-    }
+    if(useMultipleChoice){
+      if (multipleChoiceQuestions[questionIndex].answerOptions[index].isCorrect) {
+        newStyles[index] = 'green';
+      } else {
+        newStyles[index] = 'red';
+      }
+      } else {
+          if (matchQuestions[questionIndex].answerOptions[index].isCorrect) {
+            newStyles[index] = 'green';
+          } else {
+            newStyles[index] = 'red';
+          }
+      }
+      
 
     setButtonStyles(newStyles);
 
+    // reset after 1 second
     setTimeout(() => {
       setButtonStyles(Array(4).fill('#4a6fa5'));
-      setQuestionIndex((prev) => (prev + 1) % questions.length);
+
+      // move to next question
+      setQuestionIndex((prevIndex) => (prevIndex + 1) % multipleChoiceQuestions.length);
     }, 1000);
   };
 
-  const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
-
-  const ShowQuiz = () => {
-    const questions = useMultipleChoice ? multipleChoiceQuestions : matchQuestions;
-    return (
-      <>
-        <input type="checkbox" id="quiz-type" checked={useMultipleChoice} onChange={() => setUseMultipleChoice(!useMultipleChoice)} />
-        <label htmlFor="quiz-type">Use Multiple Choice Questions</label>
-        <h1 className='section-title'>Quiz Time!</h1>
-        <h2 className='question'>{questions[questionIndex].questionText}</h2>
-        <div id="answer-buttons">
-          {questions[questionIndex].answerOptions.map((opt, idx) => (
-            <button
-              key={idx}
-              style={{ backgroundColor: buttonStyles[idx] }}
-              className='answer-btn'
-              onClick={() => checkQuestion(idx)}
-            >
-              {opt.answerText}
-            </button>
-          ))}
-        </div>
-      </>
-    );
-  };
-
-  // Fix iPhone viewport height
-  useEffect(() => {
-    const updateIosVh = () => document.documentElement.style.setProperty("--ios-vh", window.innerHeight * 0.01);
-    updateIosVh();
-    window.addEventListener("resize", updateIosVh);
-    return () => window.removeEventListener("resize", updateIosVh);
-  }, []);
-
   return (
-    <div className={`body ${theme}`}>
-      <button className="theme-toggle" onClick={toggleTheme}>
-        {theme === "dark" ? "🌞 Light Mode" : "🌙 Dark Mode"}
-      </button>
+    <>
+  
+      
+      <div className="Title">
+        <Header/>
+      </div>
 
       <div id='main' className="main">
-        {show === 'Home' &&
+        { show == 'Home' ?
           <div id='Home'>
-            <div className="Title">
-              <Header />
-            </div>
-            {Array(5).fill(0).map((_, i) => <li key={i} className='list-item'>Text</li>)}
+              <li className='list-item'>
+                Text
+              </li>
+              <li className='list-item'>
+                Text
+              </li>
+              <li className='list-item'>
+                Text
+              </li>
+              <li className='list-item'>
+                Text
+              </li>
+              <li className='list-item'>
+                Text
+              </li>
           </div>
-        }
+        : ""}
 
-        {show === 'Bible' &&
+        { show == 'Bible' ? 
           <div className='Bible-Section'>
-            <div id='Bible' className='Center-Top' dangerouslySetInnerHTML={{ __html: currentBookData }} />
-            <div className='Switch-Book'>
-              <button onClick={subToIndex}>⬅️</button>
-              <h3>{currentBook}</h3>
-              <button onClick={addToIndex}>➡️</button>
+            <div id='Bible' className='Center-Top' dangerouslySetInnerHTML={{ __html: currentBookData }}>
             </div>
+              <div className='Switch-Book'>
+                <button onClick={() => {subToIndex(); setCurrentBook(books[bookIndex]); setTrigger(true);}}>⬅️</button>
+                <h3>{currentBook}</h3>
+                <button onClick={() => {addToIndex(); setCurrentBook(books[bookIndex]); setTrigger(true);}}>➡️</button>
+              </div>
+            {currentBookData}
           </div>
-        }
+        : ""}
 
-        {show === 'Quiz' &&
+        { show == 'Quiz' ? 
+          
           <div id='Quiz'>
-            <label className="checkbox-container">
-              <input type="checkbox" onChange={() => setUseMultipleChoice(!useMultipleChoice)} />
-              <span className="checkmark"></span>
+            <label class="checkbox-container">
+              <input type="checkbox" checked onChange={() => setUseMultipleChoice(!useMultipleChoice)}/>
+              <span class="checkmark"></span>
               Multiple Choice Questions
             </label>
             {ShowQuiz()}
           </div>
-        }
+        : ""}
 
-        {show === 'More' &&
-          <div id='More'>
-            More Section
-          </div>
-        }
+        { show == 'More' ? 
+        <div id='More'>
+          More Section
+        </div>
+        : ""}
+
+
       </div>
-
       <footer>
+        
         <button className='Menu-Item' onClick={() => toggleShow('Home')}>🏠</button>
         <button className='Menu-Item' onClick={() => toggleShow('Bible')}>📖</button>
-        <button className='Menu-Item' onClick={() => toggleShow('Quiz')}>✅</button>
+        <button className='Menu-Item' onClick={() => {toggleShow('Quiz')}}>✅</button>
         <button className='Menu-Item' onClick={() => toggleShow('More')}>📶</button>
       </footer>
-    </div>
-  );
+    </>
+  )
+}
+//fetch('Test.txt') no need for other //'s because it is public 
+function addToIndex() {
+  if (bookIndex < books.length - 1) {
+    bookIndex++;
+  } else {
+    bookIndex = 0;
+  }
+
+}
+function subToIndex() {
+  if (bookIndex > 0) {
+    bookIndex--;
+  } else {
+    bookIndex = books.length - 1;
+  }
 }
 
-export default App;
+export default App
