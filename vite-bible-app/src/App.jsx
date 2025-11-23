@@ -4,6 +4,8 @@ import './styles.css'
 import { useState, useEffect, use } from 'react';
 import {multipleChoiceQuestions, matchQuestions} from './quiz';
 
+import { Devotion } from './classes.jsx';
+
 //#region books From https://trulyfreebible.com/
 const books = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
   "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel",
@@ -23,7 +25,6 @@ const books = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
   let bookIndex = 0;
   //#endregion
 let bookDataCache = [];
-
 
 function App() {
   const [show, toggleShow] = useState('Home');
@@ -121,6 +122,8 @@ function BibleSection() {
   );
 }
 
+
+
 // Navigation helpers
 function addToIndex() {
   if (bookIndex < books.length - 1) bookIndex++;
@@ -217,25 +220,72 @@ function QuizSection() {
 }
 
 function Mainsection() {
+
+const [devotions, setDevotions] = useState([]);
+const [devotionIndex, setDevotionIndex] = useState(0);
+
+  useEffect(() => {
+        const fetchSubmissions = async (formId, apiKey) => {
+          try {
+            const response = await fetch(`https://api.jotform.com/form/${formId}/submissions?apiKey=${apiKey}`);
+            const data = await response.json();
+
+            console.log("Response data:", data);
+            
+            if (!data.content) {
+              console.error("No submissions found in the response.");
+              return null;
+            }
+
+            data.content
+            .filter(submission => submission.status === "ACTIVE" || submission.status === "CUSTOM")
+            .forEach(submission => {
+              if(submission.answers) {
+                if(submission.answers['15'].answer !== "Approved") {
+                  console.log(`Skipping submission ID ${submission.id} as per answer to question 15.`);
+                  return; // Skip this submission
+                }
+                const purpose = submission.answers['10'].answer;
+                const video = submission.answers['6'].answer;
+                const writtentext = submission.answers['5'].answer;
+                const prayer = submission.answers['7'].answer;
+                const devotion = new Devotion(purpose, video, writtentext, prayer);
+                setDevotions(prevDevotions => [...prevDevotions, devotion]);
+                console.log(devotions);
+              }
+              else {
+                console.warn(`Submission ID ${submission.id} has no answers.`);
+              }
+            });
+
+            return data.content; // Array of submission objects
+          } catch (error) {
+            console.error("Error fetching Jotform submissions:", error);
+            return null;
+          }
+        };
+        fetchSubmissions(import.meta.env.VITE_FORM_ID, import.meta.env.VITE_API_KEY);
+  }, []);
+
   return (
     <div id='Home'>
       <div className="Title">
         <Header/>
       </div>
       <li className='list-item'>
-        Text
+        {devotions[devotionIndex]?.purpose || 'Loading Devotion Purpose...'}
       </li>
       <li className='list-item'>
-        Text
+        <video controls width="100%" height="auto">
+          <source src={devotions[devotionIndex]?.video || null} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
       </li>
       <li className='list-item'>
-        Text
+        <div dangerouslySetInnerHTML={{ __html: devotions[devotionIndex]?.writtentext || 'Loading Devotion Written Text...' }} />
       </li>
       <li className='list-item'>
-        Text
-      </li>
-      <li className='list-item'>
-        Text
+        {devotions[devotionIndex]?.prayer || 'Loading Devotion Prayer...'}
       </li>
   </div>
   );

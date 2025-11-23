@@ -49,18 +49,24 @@
   overflow-y: auto;
 }
 
-/* ---------- Home Section ---------- */
+/* ---------- Home Section (Responsive Fix) ---------- */
 #Home {
   width: 100%;
-  max-width: 500px;
+  max-width: 500px;           /* keeps content within bounds */
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+  padding: 1rem;              /* space from edges */
+  box-sizing: border-box;     /* include padding in width */
+  margin-bottom: 100px;       /* avoid footer overlap */
+  overflow-x: hidden;         /* prevent horizontal overflow */
+  word-wrap: break-word;      /* wrap long text */
 }
 
 .list-item {
   width: 100%;
+  max-width: 100%;
   background-color: var(--card-dark);
   backdrop-filter: blur(var(--blur));
   padding: 0.8rem 1rem;
@@ -68,7 +74,27 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   text-align: center;
   font-size: 1rem;
+  list-style: none;
   transition: background var(--transition);
+  box-sizing: border-box;
+  word-wrap: break-word;      /* ensure long text wraps */
+}
+
+.body.light .list-item {
+  background-color: var(--card-light);
+}
+
+/* ---------- Responsive for small screens ---------- */
+@media (max-width: 480px) {
+  #Home {
+    padding: 0.8rem;           /* reduce padding */
+    margin-bottom: 90px;
+  }
+
+  .list-item {
+    font-size: 0.95rem;        /* slightly smaller text */
+    padding: 0.6rem 0.8rem;    /* smaller padding */
+  }
 }
 
 .body.light .list-item {
