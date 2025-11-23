@@ -27,11 +27,113 @@ let bookDataCache = [];
 
 function App() {
   const [show, toggleShow] = useState('Home');
-  
-  const [currentBook, setCurrentBook] = useState('Genesis'); //Genesis as starting book
-  const [trigger, setTrigger] = useState(true);
+  const [theme, setTheme] = useState('dark');
+
+  const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
+
+  return (
+    <div className={`body ${theme}`}>
+      <button className="theme-toggle" onClick={toggleTheme}>
+        {theme === 'dark' ? '🌞 Light Mode' : '🌙 Dark Mode'}
+      </button>
+
+      <div id='main' className="main">
+        {show === 'Home' && <Mainsection />}
+        {show === 'Bible' && <BibleSection />}
+        {show === 'Quiz' && <QuizSection />}
+        {show === 'More' && <div id='More'>More Section</div>}
+      </div>
+
+      <footer>
+        <button className='Menu-Item' onClick={() => toggleShow('Home')}>🏠</button>
+        <button className='Menu-Item' onClick={() => toggleShow('Bible')}>📖</button>
+        <button className='Menu-Item' onClick={() => toggleShow('Quiz')}>✅</button>
+        <button className='Menu-Item' onClick={() => toggleShow('More')}>📶</button>
+      </footer>
+    </div>
+  );
+}
+// region Bible Section
+function BibleSection() {
+  const [currentBook, setCurrentBook] = useState('Genesis'); 
   const [currentBookData, setCurrentBookData] = useState("No Data Loaded");
 
+  useEffect(() => {
+    const fetchBibleData = async () => {
+      if (bookDataCache[bookIndex]) {
+        setCurrentBookData(bookDataCache[bookIndex]);
+        scrollToTop();
+        return;
+      }
+
+      const response = await fetch(`Books/${currentBook}.txt`);
+      const text = await response.text();
+
+      // Regex for chapter + verses formatting
+      const pattern = new RegExp(
+        `(${currentBook}\\s*\\d+)\\s+(.*?)(?=\\d)`,
+        "gis"
+      );
+
+      const formattedData = text
+        .replace(pattern, (match, p1, p2) => {
+          return `<h2>${p1}</h2><div class="verse-block">${p2}</div>`;
+        })
+        .replace(/(\d+)(?=\s)/g, `<span class="verse-number">$1</span>`);
+
+      bookDataCache[bookIndex] = formattedData;
+      setCurrentBookData(formattedData);
+
+      scrollToTop();
+    };
+
+    fetchBibleData();
+  }, [currentBook]);
+
+  const scrollToTop = () => {
+    const bibleDiv = document.getElementById("Bible");
+    if (bibleDiv) bibleDiv.scrollTop = 0;
+  };
+
+  const goNextBook = () => {
+    addToIndex();
+    setCurrentBook(books[bookIndex]);
+  };
+
+  const goPrevBook = () => {
+    subToIndex();
+    setCurrentBook(books[bookIndex]);
+  };
+
+  return (
+    <div className='Bible-Section'>
+      <div 
+        id='Bible' 
+        className='Center-Top' 
+        dangerouslySetInnerHTML={{ __html: currentBookData }}
+      />
+      <div className='Switch-Book'>
+        <button onClick={goPrevBook}>⬅️</button>
+        <h3>{currentBook}</h3>
+        <button onClick={goNextBook}>➡️</button>
+      </div>
+    </div>
+  );
+}
+
+// Navigation helpers
+function addToIndex() {
+  if (bookIndex < books.length - 1) bookIndex++;
+  else bookIndex = 0;
+}
+
+function subToIndex() {
+  if (bookIndex > 0) bookIndex--;
+  else bookIndex = books.length - 1;
+}
+
+// endregion
+function QuizSection() {
   const [useMultipleChoice, setUseMultipleChoice] = useState(true);
 
   const ShowQuiz = () => {
@@ -67,42 +169,6 @@ function App() {
 
     );
   }
-
-
-  useEffect(() => {
-    if(bookDataCache[bookIndex] !== undefined){
-      setCurrentBookData(bookDataCache[bookIndex]);
-      setTrigger(false);
-      return;
-    }
-    const fetchBibleData = async () => {
-      //Set to Revelation for testing
-      const response = await fetch(`Books/${currentBook}.txt`);
-      let text = await response.text();
-
-     /* const pattern = new RegExp(`${currentBook}\\s*\\d+`, "g");
-      const secondPattern = new RegExp(`(${currentBook}\\s*\\d+)\\s+(.*?)(?=\\s*\\d)`, "gi");
-      let headerReplaced = text.replace(pattern, match => `<h2>${match}</h2>`);
-      const data = headerReplaced.replace(secondPattern, match => `<h3>${match}</h3>`);
-*/
-      const pattern = new RegExp( // Creates a spacing between chapter, verses, and headers
-        `(${currentBook}\\s*\\d+)\\s+(.*?)(?=\\d)`,
-        "gis"
-      );
-      const data = text.replace(pattern, (match, p1, p2) => {
-        return `<h2>${p1}</h2> <h3>${p2}</h3>`;
-      });
-
-      bookDataCache[bookIndex] = data;
-      setCurrentBookData(bookDataCache[bookIndex]);
-    }
-    fetchBibleData();
-    setTrigger(false);
-  }, [trigger]);
-  const [questionIndex, setQuestionIndex] = useState(0);
-
-  const [buttonStyles, setButtonStyles] = useState(Array(4).fill('#4a6fa5')); // initial color
-
   const checkQuestion = (index) => {
     const newStyles = [];
 
@@ -132,93 +198,48 @@ function App() {
     }, 1000);
   };
 
-  return (
-    <>
   
-      
+  const [questionIndex, setQuestionIndex] = useState(0);
+
+  const [buttonStyles, setButtonStyles] = useState(Array(4).fill('#4a6fa5')); // initial color
+
+
+  return (
+    <div id='Quiz'>
+      <label class="checkbox-container">
+        <input type="checkbox" onChange={() => setUseMultipleChoice(!useMultipleChoice)}/>
+        <span class="checkmark"></span>
+        Use Fill in the Blank Questions
+      </label>
+      {ShowQuiz()}
+    </div>
+  );
+}
+
+function Mainsection() {
+  return (
+    <div id='Home'>
       <div className="Title">
         <Header/>
       </div>
-
-      <div id='main' className="main">
-        { show == 'Home' ?
-          <div id='Home'>
-              <li className='list-item'>
-                Text
-              </li>
-              <li className='list-item'>
-                Text
-              </li>
-              <li className='list-item'>
-                Text
-              </li>
-              <li className='list-item'>
-                Text
-              </li>
-              <li className='list-item'>
-                Text
-              </li>
-          </div>
-        : ""}
-
-        { show == 'Bible' ? 
-          <div className='Bible-Section'>
-            <div id='Bible' className='Center-Top' dangerouslySetInnerHTML={{ __html: currentBookData }}>
-            </div>
-              <div className='Switch-Book'>
-                <button onClick={() => {subToIndex(); setCurrentBook(books[bookIndex]); setTrigger(true);}}>⬅️</button>
-                <h3>{currentBook}</h3>
-                <button onClick={() => {addToIndex(); setCurrentBook(books[bookIndex]); setTrigger(true);}}>➡️</button>
-              </div>
-            {currentBookData}
-          </div>
-        : ""}
-
-        { show == 'Quiz' ? 
-          
-          <div id='Quiz'>
-            <label class="checkbox-container">
-              <input type="checkbox" checked onChange={() => setUseMultipleChoice(!useMultipleChoice)}/>
-              <span class="checkmark"></span>
-              Multiple Choice Questions
-            </label>
-            {ShowQuiz()}
-          </div>
-        : ""}
-
-        { show == 'More' ? 
-        <div id='More'>
-          More Section
-        </div>
-        : ""}
-
-
-      </div>
-      <footer>
-        
-        <button className='Menu-Item' onClick={() => toggleShow('Home')}>🏠</button>
-        <button className='Menu-Item' onClick={() => toggleShow('Bible')}>📖</button>
-        <button className='Menu-Item' onClick={() => {toggleShow('Quiz')}}>✅</button>
-        <button className='Menu-Item' onClick={() => toggleShow('More')}>📶</button>
-      </footer>
-    </>
-  )
+      <li className='list-item'>
+        Text
+      </li>
+      <li className='list-item'>
+        Text
+      </li>
+      <li className='list-item'>
+        Text
+      </li>
+      <li className='list-item'>
+        Text
+      </li>
+      <li className='list-item'>
+        Text
+      </li>
+  </div>
+  );
 }
-//fetch('Test.txt') no need for other //'s because it is public 
-function addToIndex() {
-  if (bookIndex < books.length - 1) {
-    bookIndex++;
-  } else {
-    bookIndex = 0;
-  }
 
-}
-function subToIndex() {
-  if (bookIndex > 0) {
-    bookIndex--;
-  } else {
-    bookIndex = books.length - 1;
-  }
-}
 
 export default App
