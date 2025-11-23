@@ -15,7 +15,7 @@
   --accent-hover-dark: #3a9ad9;
   --button-text-dark: #fff;
   --card-dark: rgba(30, 30, 30, 0.7);
-
+  
   /* General */
   --radius: 12px;
   --transition: 0.3s ease;
@@ -27,11 +27,11 @@
   font-family: 'Segoe UI', Roboto, sans-serif;
   margin: 0;
   padding: 0;
+  background-color: var(--bg-dark);
+  color: var(--text-dark);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-dark);
-  color: var(--text-dark);
 }
 
 .body.light {
@@ -49,23 +49,24 @@
   overflow-y: auto;
 }
 
-/* ---------- Home Section ---------- */
+/* ---------- Home Section (Responsive Fix) ---------- */
 #Home {
   width: 100%;
-  max-width: 500px;
+  max-width: 500px;           /* keeps content within bounds */
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  padding: 1rem;
-  margin-bottom: 100px; 
-  box-sizing: border-box;
-  overflow-x: hidden;
-  word-wrap: break-word;
+  padding: 1rem;              /* space from edges */
+  box-sizing: border-box;     /* include padding in width */
+  margin-bottom: 100px;       /* avoid footer overlap */
+  overflow-x: hidden;         /* prevent horizontal overflow */
+  word-wrap: break-word;      /* wrap long text */
 }
 
 .list-item {
   width: 100%;
+  max-width: 100%;
   background-color: var(--card-dark);
   backdrop-filter: blur(var(--blur));
   padding: 0.8rem 1rem;
@@ -75,8 +76,25 @@
   font-size: 1rem;
   list-style: none;
   transition: background var(--transition);
-  word-wrap: break-word;
   box-sizing: border-box;
+  word-wrap: break-word;      /* ensure long text wraps */
+}
+
+.body.light .list-item {
+  background-color: var(--card-light);
+}
+
+/* ---------- Responsive for small screens ---------- */
+@media (max-width: 480px) {
+  #Home {
+    padding: 0.8rem;           /* reduce padding */
+    margin-bottom: 90px;
+  }
+
+  .list-item {
+    font-size: 0.95rem;        /* slightly smaller text */
+    padding: 0.6rem 0.8rem;    /* smaller padding */
+  }
 }
 
 .body.light .list-item {
@@ -122,7 +140,7 @@
   line-height: 1.5;
 }
 
-/* ---------- Switch Book ---------- */
+/* ---------- Switch Book Buttons ---------- */
 .Switch-Book {
   display: flex;
   justify-content: center;
@@ -160,6 +178,7 @@
 
 .Switch-Book button:active {
   transform: translateY(0) scale(0.97);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
 .Switch-Book h3 {
@@ -210,7 +229,8 @@
 /* ---------- Theme Toggle ---------- */
 .theme-toggle {
   position: fixed;
-  bottom: 70px;
+  top: auto;
+  bottom: 70px; /* Move above footer */
   right: 1rem;
   background-color: var(--accent-dark);
   color: var(--button-text-dark);
@@ -262,27 +282,9 @@ footer {
 .Menu-Item:hover {
   transform: translateY(-2px) scale(1.1);
 }
-/* ---------- Main Sections Consistent Width ---------- */
-#Home,
-.Bible-Section,
-#Quiz, #More {
-  width: 100%;
-  max-width: 500px;    /* existing max width */
-  min-width: 500px;    /* added to prevent shrinking */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  box-sizing: border-box;
-}
 
 /* ---------- Responsive ---------- */
 @media (max-width: 480px) {
-  #Home {
-    padding: 0.8rem;
-    margin-bottom: 90px;
-  }
-
   #Bible {
     height: 55vh;
     padding: 0.8rem;

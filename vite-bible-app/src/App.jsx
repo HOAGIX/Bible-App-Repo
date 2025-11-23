@@ -233,6 +233,8 @@ function Mainsection() {
         );
         const data = await response.json();
 
+        console.log("Jotform API Response:", data);
+
         if (!data.content) {
           console.error("No submissions found in the response.");
           return;
@@ -250,6 +252,7 @@ function Mainsection() {
             let videoAnswer = submission.answers['22']?.answer || '';
             const writtentext = submission.answers['5']?.answer || '';
             const prayer = submission.answers['7']?.answer || '';
+            const author = "By: " + submission.answers['20']?.answer || '';
 
             // If it's an array (Jotform file upload), pick the first item
             if (Array.isArray(videoAnswer)) videoAnswer = videoAnswer[0];
@@ -259,7 +262,7 @@ function Mainsection() {
               videoAnswer = `https://cdn.jotfor.ms/files/${videoAnswer}`;
             }
 
-            return new Devotion(purpose, videoAnswer, writtentext, prayer);
+            return new Devotion(purpose, videoAnswer, writtentext, prayer, author);
           });
 
         console.log("Approved Devotions:", approvedDevotions);
@@ -285,7 +288,7 @@ function Mainsection() {
         <Header />
       </div>
         <li className='list-item'>
-          {currentDevotion?.purpose || 'No purpose available'}
+          <h3>{currentDevotion?.purpose || 'No purpose available'}</h3>
         </li>
         <li className='list-item' style={{ listStyle: 'none', width: '100%' }}>
           <div style={{ width: '100%', maxWidth: '640px', margin: '20px auto' }}>
@@ -308,6 +311,9 @@ function Mainsection() {
         </li>
         <li className='list-item'>
           {currentDevotion?.prayer || 'No prayer available'}
+        </li>
+        <li className='list-item'>
+          {currentDevotion?.author || 'No author available'}
         </li>
     </div>
   );
