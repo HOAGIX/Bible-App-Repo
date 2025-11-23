@@ -57,6 +57,55 @@ function App() {
   );
 }
 // region Bible Section
+function formatBibleText(currentBook, rawText) {
+  const lines = rawText.split(/\r?\n/);
+  let html = "";
+  let currentChapter = null;
+
+  // Match chapter header, e.g., "Leviticus 1"
+  const chapterHeader = new RegExp(`^${currentBook}\\s+(\\d+)$`, "i");
+
+  // Match verses: number followed by text
+  const versePatternGlobal = /(\d+)\s*([^0-9]+)/g;
+
+  lines.forEach(line => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+
+    // ---- CHAPTER DETECT ----
+    const chapterMatch = trimmed.match(chapterHeader);
+    if (chapterMatch) {
+      currentChapter = chapterMatch[1];
+      html += `<h2>${currentBook} ${currentChapter}</h2>`;
+      return;
+    }
+
+    // ---- VERSE DETECT ----
+    let verseMatches = [...trimmed.matchAll(versePatternGlobal)];
+
+    if (verseMatches.length) {
+      verseMatches.forEach(match => {
+        const verseNum = match[1];
+        let verseText = match[2].trim();
+
+        // Add space if missing
+        if (verseText && !verseText.startsWith(" ")) verseText = " " + verseText;
+
+        html += `
+          <div class="verse-line">
+            <span class="verse-number">${verseNum}</span>${verseText}
+          </div>
+        `;
+      });
+    } else {
+      // ---- FALLBACK ----
+      html += `<div class="verse-line">${trimmed}</div>`;
+    }
+  });
+
+  return html;
+}
+
 function BibleSection() {
   const [currentBook, setCurrentBook] = useState('Genesis'); 
   const [currentBookData, setCurrentBookData] = useState("No Data Loaded");
@@ -72,21 +121,10 @@ function BibleSection() {
       const response = await fetch(`Books/${currentBook}.txt`);
       const text = await response.text();
 
-      // Regex for chapter + verses formatting
-      const pattern = new RegExp(
-        `(${currentBook}\\s*\\d+)\\s+(.*?)(?=\\d)`,
-        "gis"
-      );
-
-      const formattedData = text
-        .replace(pattern, (match, p1, p2) => {
-          return `<h2>${p1}</h2><div class="verse-block">${p2}</div>`;
-        })
-        .replace(/(\d+)(?=\s)/g, `<span class="verse-number">$1</span>`);
+      const formattedData = formatBibleText(currentBook, text);
 
       bookDataCache[bookIndex] = formattedData;
       setCurrentBookData(formattedData);
-
       scrollToTop();
     };
 
@@ -95,7 +133,7 @@ function BibleSection() {
 
   const scrollToTop = () => {
     const bibleDiv = document.getElementById("Bible");
-    if (bibleDiv) bibleDiv.scrollTop = 0;
+    if (bibleDiv) bibleDiv.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const goNextBook = () => {

@@ -101,47 +101,116 @@
   background-color: var(--card-light);
 }
 
-/* ---------- Bible Section ---------- */
-.Bible-Section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 500px;
-  /* remove fixed min-width for mobile */
-  box-sizing: border-box;
-  padding: 0 1rem;
-}
+/* ----------------------------------------
+   BIBLE READER – Clean, Modern Typography
+-----------------------------------------*/
 
-/* Bible container */
 #Bible {
   width: 100%;
-  height: 60vh;
+  height: 62vh;
   overflow-y: auto;
-  padding: 1rem;
+  padding: 1rem 1.2rem;
   border-radius: var(--radius);
   background-color: var(--card-dark);
   backdrop-filter: blur(var(--blur));
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   box-sizing: border-box;
-  word-wrap: break-word;   /* ensure text wraps */
+  line-height: 1.6;
+  font-size: 1.05rem;
+  font-family: "Georgia", "Times New Roman", serif;
+  letter-spacing: 0.2px;
 }
 
-/* Responsive adjustments for small screens */
+.body.light #Bible {
+  background-color: var(--card-light);
+}
+
+/* Chapter Heading */
+#Bible h2 {
+  font-size: 1.4rem;
+  text-align: center;
+  margin: 1rem 0 0.5rem 0;
+  font-weight: bold;
+  letter-spacing: 1px;
+  padding-bottom: 0.3rem;
+  border-bottom: 2px solid rgba(255,255,255,0.1);
+}
+
+.body.light #Bible h2 {
+  border-bottom: 2px solid rgba(0,0,0,0.15);
+}
+
+/* Verse Container */
+.verse-line {
+  padding: 0.4rem 0.3rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  word-wrap: break-word;
+}
+
+/* Alternating background for readability */
+.verse-line:nth-child(even) {
+  background-color: rgba(255,255,255,0.05);
+}
+
+.body.light .verse-line:nth-child(even) {
+  background-color: rgba(0,0,0,0.04);
+}
+
+/* Verse Numbers */
+.verse-number {
+  font-weight: bold;
+  color: var(--accent-light);
+  font-size: 0.9rem;
+  min-width: 18px;
+  text-align: right;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.body.dark .verse-number {
+  color: var(--accent-dark);
+}
+
+/* Improve Quote Marks & Apostrophes */
+.verse-line::selection,
+#Bible::selection {
+  background-color: var(--accent-dark);
+  color: white;
+}
+
+/* Smoother scrolling */
+#Bible::-webkit-scrollbar {
+  width: 8px;
+}
+#Bible::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2);
+  border-radius: 4px;
+}
+.body.light #Bible::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.25);
+}
+
+/* MOBILE IMPROVEMENTS */
 @media (max-width: 480px) {
-  .Bible-Section {
-    max-width: 100%;   /* allow full width */
-    padding: 0 0.5rem; /* reduce side padding */
-  }
 
   #Bible {
-    height: 55vh;       /* slightly smaller height */
-    padding: 0.8rem;    /* reduce inner padding */
-    font-size: 0.95rem; /* smaller text for mobile */
+    height: 56vh;
+    padding: 0.9rem 0.9rem;
+    font-size: 1rem;
+    line-height: 1.55;
   }
 
   .verse-number {
-    font-size: 0.85rem;  /* smaller verse numbers */
+    font-size: 0.85rem;
+    min-width: 16px;
+  }
+
+  #Bible h2 {
+    font-size: 1.25rem;
+    margin-top: 0.8rem;
   }
 }
 
