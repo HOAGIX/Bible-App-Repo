@@ -56,52 +56,100 @@ function App() {
     </div>
   );
 }
-// region Bible Section
-function formatBibleText(currentBook, rawText, annotations = {}) {
+
+function formatBibleBook(currentBook, rawText, annotations = {}) {
   const lines = rawText.split(/\r?\n/);
-  let html = "";
+  let chapters = [];
   let currentChapter = null;
+  let buffer = [];
 
-  const chapterHeader = new RegExp(`^${currentBook}\\s+(\\d+)$`, "i");
-  const versePattern = /^(\d+)(.*)$/;
+  const normalizedBook = currentBook.replace(/\s+/g, "\\s*");
 
-  lines.forEach(line => {
+  const isChapterHeader = (line) => {
     const trimmed = line.trim();
-    if (!trimmed) return;
 
-    // Chapter header
-    const chapterMatch = trimmed.match(chapterHeader);
-    if (chapterMatch) {
-      currentChapter = chapterMatch[1];
-      html += `<h2>${currentBook} ${currentChapter}</h2>`;
-      return;
+    let bookPattern;
+
+    // Special cases
+    const lowerBook = currentBook.toLowerCase();
+
+    if (lowerBook === "psalms") {
+      // Psalms can be singular or plural
+      bookPattern = /^psalm[s]?\s*(\d+)/i;
+    } else if (lowerBook === "song of solomon") {
+      // Accept either "Song of Songs" or "Song of Solomon"
+      bookPattern = /^song of song[s]?\s*(\d+)/i; // matches both "Song of Songs" and "Song of Solomon"
+    } else {
+      const normalizedBook = currentBook.replace(/\s+/g, "\\s*");
+      bookPattern = new RegExp(`^${normalizedBook}\\s*(\\d+)`, "i");
     }
 
-    // Verse
-    const verseMatch = trimmed.match(versePattern);
-    if (verseMatch) {
-      const verseNum = verseMatch[1];
-      let verseText = verseMatch[2];
-      if (verseText && !verseText.startsWith(" ")) verseText = " " + verseText;
+    let match = trimmed.match(bookPattern);
+    if (match) return match[1];
 
-      const verseKey = `${currentChapter}:${verseNum}`;
+    // Match "Chapter 1" or "CHAPTER 1"
+    match = trimmed.match(/^chapter\s+(\d+)$/i);
+    if (match) return match[1];
+
+    // Single number on line
+    match = trimmed.match(/^(\d+)$/);
+    if (match) return match[1];
+
+    return null;
+  };
+
+
+  // Split book into chapters
+  lines.forEach(line => {
+    const chapterNum = isChapterHeader(line);
+    if (chapterNum) {
+      if (currentChapter) {
+        chapters.push({ chapter: currentChapter, text: buffer.join(" ") });
+      }
+      currentChapter = chapterNum;
+      buffer = [];
+      return;
+    }
+    buffer.push(line.trim());
+  });
+
+  if (currentChapter) {
+    chapters.push({ chapter: currentChapter, text: buffer.join(" ") });
+  }
+
+  // Verse regex: matches number immediately followed by text or with space
+  const verseRegex = /(\d+)([^\d\n][^]*?)(?=(\d+)|$)/gs;
+
+  let fullHTML = "";
+  chapters.forEach(ch => {
+    fullHTML += `<h2>${currentBook} ${ch.chapter}</h2>`;
+    let text = ch.text;
+    let match;
+
+    while ((match = verseRegex.exec(text)) !== null) {
+      const verseNum = match[1];
+      const verseText = match[2].trim();
+
+      const verseKey = `${ch.chapter}:${verseNum}`;
       const note = annotations[currentBook]?.[verseKey] || "";
 
-      html += `
+      fullHTML += `
         <div class="verse-line" data-verse="${verseKey}">
-          <span class="verse-number">${verseNum}</span>${verseText}
+          <span class="verse-number">${verseNum}</span> ${verseText}
           <button class="annotate-btn">✏️</button>
           ${note ? `<div class="verse-annotation">${note}</div>` : ""}
         </div>
       `;
-      return;
     }
-
-    html += `<div class="verse-line">${trimmed}</div>`;
   });
 
-  return html;
+  return fullHTML;
 }
+
+
+
+
+
 
 
 function BibleSection() {
@@ -129,7 +177,7 @@ function BibleSection() {
     const fetchBibleData = async () => {
       const response = await fetch(`Books/${currentBook}.txt`);
       const text = await response.text();
-      const formattedData = formatBibleText(currentBook, text, annotations);
+      const formattedData = formatBibleBook(currentBook, text, annotations);
       setCurrentBookData(formattedData);
     };
 
