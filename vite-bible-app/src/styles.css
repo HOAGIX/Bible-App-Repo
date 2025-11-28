@@ -255,6 +255,11 @@
   transform: scale(1.01);
   transition: transform 0.2s;
 }
+/* Highlight when jumping to verse */
+.highlight-jump {
+  background-color: yellow;
+  transition: background-color 1.5s ease;
+}
 
 
 /* ---------- Switch Book Buttons ---------- */

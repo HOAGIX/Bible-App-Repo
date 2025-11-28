@@ -32,7 +32,22 @@ function App() {
   const [show, toggleShow] = useState('Home');
   const [theme, setTheme] = useState('dark');
 
+  const [annotations, setAnnotations] = useState(() => JSON.parse(localStorage.getItem('bibleAnnotations') || '{}'));
+  const [highlightedVerses, setHighlightedVerses] = useState(() => JSON.parse(localStorage.getItem('highlightedVerses') || '{}'));
+
+  const [currentBook, setCurrentBook] = useState('Genesis');
+  const [jumpToVerse, setJumpToVerse] = useState(null); // NEW
+
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
+
+  const handleSelectVerse = (book, verseKey) => {
+    if (book !== currentBook) {
+      setCurrentBook(book);
+      bookIndex = books.indexOf(book);
+    }
+    toggleShow('Bible');
+    setJumpToVerse(verseKey); // tell BibleSection which verse to scroll to
+  };
 
   return (
     <div className={`body ${theme}`}>
@@ -42,9 +57,24 @@ function App() {
 
       <div id='main' className="main">
         {show === 'Home' && <Mainsection />}
-        {show === 'Bible' && <BibleSection />}
+        {show === 'Bible' && (
+          <BibleSection
+            currentBook={currentBook}
+            setCurrentBook={setCurrentBook}
+            annotations={annotations}
+            setAnnotations={setAnnotations}
+            highlightedVerses={highlightedVerses}
+            setHighlightedVerses={setHighlightedVerses}
+            jumpToVerse={jumpToVerse}   // PASS NEW PROP
+            setJumpToVerse={setJumpToVerse} // optional for resetting
+          />
+        )}
         {show === 'Quiz' && <QuizSection />}
-        {show === 'More' && <div id='More'>More Section</div>}
+        {show === 'More' && <MoreSection
+          highlightedVerses={highlightedVerses}
+          annotations={annotations}
+          onSelectVerse={handleSelectVerse}
+        />}
       </div>
 
       <footer>
@@ -141,49 +171,47 @@ function formatBibleBook(currentBook, rawText, annotations = {}, highlightedVers
 }
 
 
-function BibleSection() {
-  const [currentBook, setCurrentBook] = useState('Genesis'); 
-  const [currentBookData, setCurrentBookData] = useState("No Data Loaded");
-
-  const [annotations, setAnnotations] = useState(() => {
-    return JSON.parse(localStorage.getItem('bibleAnnotations') || '{}');
-  });
-
-  const [highlightedVerses, setHighlightedVerses] = useState(() => {
-    return JSON.parse(localStorage.getItem('highlightedVerses') || '{}');
-  });
+function BibleSection({
+  initialBook = 'Genesis',
+  jumpToVerse,
+  setJumpToVerse,
+  currentBook,
+  setCurrentBook,
+  annotations,
+  setAnnotations,
+  highlightedVerses,
+  setHighlightedVerses
+}) {
+  const [currentBookData, setCurrentBookData] = useState("Loading...");
 
   // Add annotation
   const addAnnotation = (verseKey) => {
-      const note = prompt("Enter your annotation:", annotations[currentBook]?.[verseKey] || "");
-      if (note !== null) {
-        setAnnotations(prev => {
-          const updated = { ...prev };
-          if (!updated[currentBook]) updated[currentBook] = {};
-          updated[currentBook][verseKey] = note;
-          localStorage.setItem("bibleAnnotations", JSON.stringify(updated));
-          return updated;
-        });
-      }
+    const note = prompt("Enter your annotation:", annotations[currentBook]?.[verseKey] || "");
+    if (note !== null) {
+      setAnnotations(prev => {
+        const updated = { ...prev };
+        if (!updated[currentBook]) updated[currentBook] = {};
+        updated[currentBook][verseKey] = note;
+        localStorage.setItem("bibleAnnotations", JSON.stringify(updated));
+        return updated;
+      });
+    }
   };
 
-  // Toggle highlight
   const toggleHighlight = (verseKey) => {
     setHighlightedVerses(prev => {
       const updated = { ...prev };
       if (!updated[currentBook]) updated[currentBook] = {};
 
-      if (updated[currentBook][verseKey]) {
-        delete updated[currentBook][verseKey]; // remove highlight
-      } else {
-        updated[currentBook][verseKey] = true; // add highlight
-      }
+      if (updated[currentBook][verseKey]) delete updated[currentBook][verseKey];
+      else updated[currentBook][verseKey] = true;
 
       localStorage.setItem("highlightedVerses", JSON.stringify(updated));
       return updated;
     });
   };
 
+  // Fetch & format book whenever currentBook, annotations, or highlights change
   useEffect(() => {
     const fetchBibleData = async () => {
       const response = await fetch(`Books/${currentBook}.txt`);
@@ -191,46 +219,50 @@ function BibleSection() {
       const formattedData = formatBibleBook(currentBook, text, annotations, highlightedVerses);
       setCurrentBookData(formattedData);
     };
-
     fetchBibleData();
   }, [currentBook, annotations, highlightedVerses]);
 
+  // Setup annotation buttons & verse click events
   useEffect(() => {
     const bibleDiv = document.getElementById("Bible");
     if (!bibleDiv) return;
 
-    const annotateButtons = bibleDiv.querySelectorAll(".annotate-btn");
-    annotateButtons.forEach((btn) => {
+    // Annotation buttons
+    bibleDiv.querySelectorAll(".annotate-btn").forEach(btn => {
       btn.onclick = () => {
-        const verseDiv = btn.closest(".verse-line");
-        const verseKey = verseDiv.dataset.verse;
+        const verseKey = btn.closest(".verse-line").dataset.verse;
         addAnnotation(verseKey);
       };
     });
 
-    // Add click to toggle highlight
-    const verses = bibleDiv.querySelectorAll(".verse-line");
-    verses.forEach((verseDiv) => {
-      verseDiv.onclick = (e) => {
-        // prevent conflict with annotate button click
+    // Toggle highlight
+    bibleDiv.querySelectorAll(".verse-line").forEach(div => {
+      div.onclick = (e) => {
         if (e.target.classList.contains("annotate-btn")) return;
-        const verseKey = verseDiv.dataset.verse;
-        toggleHighlight(verseKey);
+        toggleHighlight(div.dataset.verse);
       };
 
-      // Apply highlight class
-      const verseKey = verseDiv.dataset.verse;
-      if (highlightedVerses[currentBook]?.[verseKey]) {
-        verseDiv.classList.add("highlighted");
-      } else {
-        verseDiv.classList.remove("highlighted");
-      }
+      const verseKey = div.dataset.verse;
+      if (highlightedVerses[currentBook]?.[verseKey]) div.classList.add("highlighted");
+      else div.classList.remove("highlighted");
     });
-  }, [currentBookData, highlightedVerses]);
+
+    // Scroll to verse if jump requested
+    if (jumpToVerse) {
+      const verseDiv = bibleDiv.querySelector(`.verse-line[data-verse="${jumpToVerse}"]`);
+      if (verseDiv) {
+        verseDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        verseDiv.classList.add('highlight-jump');
+        setTimeout(() => verseDiv.classList.remove('highlight-jump'), 1500);
+      }
+      // Reset jumpToVerse after scrolling
+      setJumpToVerse?.(null);
+    }
+
+  }, [currentBookData, highlightedVerses, jumpToVerse]);
 
   const scrollToTop = () => {
-    const bibleDiv = document.getElementById("Bible");
-    if (bibleDiv) bibleDiv.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById("Bible")?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const goNextBook = () => { addToIndex(); setCurrentBook(books[bookIndex]); scrollToTop(); };
@@ -238,11 +270,7 @@ function BibleSection() {
 
   return (
     <div className='Bible-Section'>
-      <div 
-        id='Bible' 
-        className='Center-Top' 
-        dangerouslySetInnerHTML={{ __html: currentBookData }}
-      />
+      <div id='Bible' className='Center-Top' dangerouslySetInnerHTML={{ __html: currentBookData }} />
       <div className='Switch-Book'>
         <button onClick={goPrevBook}>⬅️</button>
         <h3>{currentBook}</h3>
@@ -251,10 +279,6 @@ function BibleSection() {
     </div>
   );
 }
-
-
-
-
 
 // Navigation helpers
 function addToIndex() {
@@ -378,21 +402,27 @@ function Mainsection() {
               sub.answers['15']?.answer === "Approved"
           )
           .map(submission => {
-            const purpose = submission.answers['10']?.answer || '';
-            let videoAnswer = submission.answers['22']?.answer || '';
-            const writtentext = submission.answers['5']?.answer || '';
-            const prayer = submission.answers['7']?.answer || '';
-            const author = "By: " + submission.answers['20']?.answer || '';
+            
+            if(Date.parse(submission.updated_at) < Date.now()){
+              const purpose = submission.answers['10']?.answer || '';
+              let videoAnswer = submission.answers['22']?.answer || '';
+              const writtentext = submission.answers['5']?.answer || '';
+              const prayer = submission.answers['7']?.answer || '';
+              const author = "By: " + submission.answers['20']?.answer || '';
 
-            // If it's an array (Jotform file upload), pick the first item
-            if (Array.isArray(videoAnswer)) videoAnswer = videoAnswer[0];
+              // If it's an array (Jotform file upload), pick the first item
+              if (Array.isArray(videoAnswer)) videoAnswer = videoAnswer[0];
 
-            // If it's a relative file path, prepend Jotform CDN
-            if (videoAnswer && !videoAnswer.startsWith('http')) {
-              videoAnswer = `https://cdn.jotfor.ms/files/${videoAnswer}`;
+              // If it's a relative file path, prepend Jotform CDN
+              if (videoAnswer && !videoAnswer.startsWith('http')) {
+                videoAnswer = `https://cdn.jotfor.ms/files/${videoAnswer}`;
+              }
+              
+              return new Devotion(purpose, videoAnswer, writtentext, prayer, author);
+            } else {
+              setDevotionIndex
+              return null;
             }
-
-            return new Devotion(purpose, videoAnswer, writtentext, prayer, author);
           });
 
         console.log("Approved Devotions:", approvedDevotions);
@@ -445,6 +475,40 @@ function Mainsection() {
         <li className='list-item'>
           <h4>{currentDevotion?.author || 'No author available'}</h4>
         </li>
+    </div>
+  );
+}
+
+function MoreSection({ highlightedVerses, annotations, onSelectVerse }) {
+  const [highlightedList, setHighlightedList] = useState([]);
+
+  useEffect(() => {
+    const allHighlights = [];
+
+    for (const book in highlightedVerses) {
+      for (const verseKey in highlightedVerses[book]) {
+        const note = annotations[book]?.[verseKey] || "";
+        allHighlights.push({ book, verseKey, note });
+      }
+    }
+
+    setHighlightedList(allHighlights);
+  }, [highlightedVerses, annotations]);
+
+  if (!highlightedList.length) return <p>No highlighted verses yet.</p>;
+
+  return (
+    <div id='More'>
+      {highlightedList.map((item, idx) => (
+        <li
+          key={`${item.book}-${item.verseKey}-${idx}`}
+          className='list-item'
+          style={{ cursor: 'pointer' }}
+          onClick={() => onSelectVerse(item.book, item.verseKey)}
+        >
+          <strong>{item.book} {item.verseKey}:</strong> {item.note ? <span>{item.note}</span> : <em>No annotation</em>}
+        </li>
+      ))}
     </div>
   );
 }
