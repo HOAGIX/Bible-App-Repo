@@ -57,7 +57,7 @@ function App() {
   );
 }
 
-function formatBibleBook(currentBook, rawText, annotations = {}) {
+function formatBibleBook(currentBook, rawText, annotations = {}, highlightedVerses = {}) {
   const lines = rawText.split(/\r?\n/);
   let chapters = [];
   let currentChapter = null;
@@ -67,18 +67,14 @@ function formatBibleBook(currentBook, rawText, annotations = {}) {
 
   const isChapterHeader = (line) => {
     const trimmed = line.trim();
-
     let bookPattern;
 
-    // Special cases
     const lowerBook = currentBook.toLowerCase();
 
     if (lowerBook === "psalms") {
-      // Psalms can be singular or plural
       bookPattern = /^psalm[s]?\s*(\d+)/i;
     } else if (lowerBook === "song of solomon") {
-      // Accept either "Song of Songs" or "Song of Solomon"
-      bookPattern = /^song of song[s]?\s*(\d+)/i; // matches both "Song of Songs" and "Song of Solomon"
+      bookPattern = /^song of song[s]?\s*(\d+)/i;
     } else {
       const normalizedBook = currentBook.replace(/\s+/g, "\\s*");
       bookPattern = new RegExp(`^${normalizedBook}\\s*(\\d+)`, "i");
@@ -87,17 +83,14 @@ function formatBibleBook(currentBook, rawText, annotations = {}) {
     let match = trimmed.match(bookPattern);
     if (match) return match[1];
 
-    // Match "Chapter 1" or "CHAPTER 1"
     match = trimmed.match(/^chapter\s+(\d+)$/i);
     if (match) return match[1];
 
-    // Single number on line
     match = trimmed.match(/^(\d+)$/);
     if (match) return match[1];
 
     return null;
   };
-
 
   // Split book into chapters
   lines.forEach(line => {
@@ -117,7 +110,7 @@ function formatBibleBook(currentBook, rawText, annotations = {}) {
     chapters.push({ chapter: currentChapter, text: buffer.join(" ") });
   }
 
-  // Verse regex: matches number immediately followed by text or with space
+  // Verse regex: number immediately followed by text
   const verseRegex = /(\d+)([^\d\n][^]*?)(?=(\d+)|$)/gs;
 
   let fullHTML = "";
@@ -132,9 +125,10 @@ function formatBibleBook(currentBook, rawText, annotations = {}) {
 
       const verseKey = `${ch.chapter}:${verseNum}`;
       const note = annotations[currentBook]?.[verseKey] || "";
+      const isHighlighted = highlightedVerses[currentBook]?.[verseKey] ? "highlighted" : "";
 
       fullHTML += `
-        <div class="verse-line" data-verse="${verseKey}">
+        <div class="verse-line ${isHighlighted}" data-verse="${verseKey}">
           <span class="verse-number">${verseNum}</span> ${verseText}
           <button class="annotate-btn">✏️</button>
           ${note ? `<div class="verse-annotation">${note}</div>` : ""}
@@ -147,11 +141,6 @@ function formatBibleBook(currentBook, rawText, annotations = {}) {
 }
 
 
-
-
-
-
-
 function BibleSection() {
   const [currentBook, setCurrentBook] = useState('Genesis'); 
   const [currentBookData, setCurrentBookData] = useState("No Data Loaded");
@@ -160,51 +149,58 @@ function BibleSection() {
     return JSON.parse(localStorage.getItem('bibleAnnotations') || '{}');
   });
 
-  const [highlightedVerse, setHighlightedVerse] = useState(() => {
-    return JSON.parse(localStorage.getItem('highlightedVerse') || '{}');
+  const [highlightedVerses, setHighlightedVerses] = useState(() => {
+    return JSON.parse(localStorage.getItem('highlightedVerses') || '{}');
   });
 
+  // Add annotation
   const addAnnotation = (verseKey) => {
-    const note = prompt("Enter your annotation:", annotations[currentBook]?.[verseKey] || "");
-    if (note !== null) {
-      setAnnotations(prev => {
-        const updated = { ...prev };
-        if (!updated[currentBook]) updated[currentBook] = {};
-        updated[currentBook][verseKey] = note;
-        localStorage.setItem("bibleAnnotations", JSON.stringify(updated));
-        return updated;
-      });
-    }
+      const note = prompt("Enter your annotation:", annotations[currentBook]?.[verseKey] || "");
+      if (note !== null) {
+        setAnnotations(prev => {
+          const updated = { ...prev };
+          if (!updated[currentBook]) updated[currentBook] = {};
+          updated[currentBook][verseKey] = note;
+          localStorage.setItem("bibleAnnotations", JSON.stringify(updated));
+          return updated;
+        });
+      }
   };
 
-  const highlightVerse = (verseKey) => {
-    setHighlightedVerse({ book: currentBook, verse: verseKey });
-    localStorage.setItem('highlightedVerse', JSON.stringify({ book: currentBook, verse: verseKey }));
+  // Toggle highlight
+  const toggleHighlight = (verseKey) => {
+    setHighlightedVerses(prev => {
+      const updated = { ...prev };
+      if (!updated[currentBook]) updated[currentBook] = {};
 
-    // Scroll to the verse after DOM updates
-    setTimeout(() => {
-      const verseDiv = document.querySelector(`.verse-line[data-verse="${verseKey}"]`);
-      if (verseDiv) verseDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 50);
+      if (updated[currentBook][verseKey]) {
+        delete updated[currentBook][verseKey]; // remove highlight
+      } else {
+        updated[currentBook][verseKey] = true; // add highlight
+      }
+
+      localStorage.setItem("highlightedVerses", JSON.stringify(updated));
+      return updated;
+    });
   };
 
   useEffect(() => {
     const fetchBibleData = async () => {
       const response = await fetch(`Books/${currentBook}.txt`);
       const text = await response.text();
-      const formattedData = formatBibleBook(currentBook, text, annotations);
+      const formattedData = formatBibleBook(currentBook, text, annotations, highlightedVerses);
       setCurrentBookData(formattedData);
     };
+
     fetchBibleData();
-  }, [currentBook, annotations]);
+  }, [currentBook, annotations, highlightedVerses]);
 
   useEffect(() => {
     const bibleDiv = document.getElementById("Bible");
     if (!bibleDiv) return;
 
-    // Attach annotation buttons
-    const buttons = bibleDiv.querySelectorAll(".annotate-btn");
-    buttons.forEach((btn) => {
+    const annotateButtons = bibleDiv.querySelectorAll(".annotate-btn");
+    annotateButtons.forEach((btn) => {
       btn.onclick = () => {
         const verseDiv = btn.closest(".verse-line");
         const verseKey = verseDiv.dataset.verse;
@@ -212,38 +208,33 @@ function BibleSection() {
       };
     });
 
-    // Attach highlight click
+    // Add click to toggle highlight
     const verses = bibleDiv.querySelectorAll(".verse-line");
-    verses.forEach(verse => {
-      verse.onclick = () => highlightVerse(verse.dataset.verse);
-    });
+    verses.forEach((verseDiv) => {
+      verseDiv.onclick = (e) => {
+        // prevent conflict with annotate button click
+        if (e.target.classList.contains("annotate-btn")) return;
+        const verseKey = verseDiv.dataset.verse;
+        toggleHighlight(verseKey);
+      };
 
-    // Apply highlight style
-    verses.forEach(verse => {
-      if (highlightedVerse.book === currentBook && verse.dataset.verse === highlightedVerse.verse) {
-        verse.classList.add("highlighted");
+      // Apply highlight class
+      const verseKey = verseDiv.dataset.verse;
+      if (highlightedVerses[currentBook]?.[verseKey]) {
+        verseDiv.classList.add("highlighted");
       } else {
-        verse.classList.remove("highlighted");
+        verseDiv.classList.remove("highlighted");
       }
     });
-  }, [currentBookData, highlightedVerse]);
+  }, [currentBookData, highlightedVerses]);
 
   const scrollToTop = () => {
     const bibleDiv = document.getElementById("Bible");
     if (bibleDiv) bibleDiv.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const goNextBook = () => {
-    addToIndex();
-    setCurrentBook(books[bookIndex]);
-    scrollToTop();
-  };
-
-  const goPrevBook = () => {
-    subToIndex();
-    setCurrentBook(books[bookIndex]);
-    scrollToTop();
-  };
+  const goNextBook = () => { addToIndex(); setCurrentBook(books[bookIndex]); scrollToTop(); };
+  const goPrevBook = () => { subToIndex(); setCurrentBook(books[bookIndex]); scrollToTop(); };
 
   return (
     <div className='Bible-Section'>
@@ -260,6 +251,7 @@ function BibleSection() {
     </div>
   );
 }
+
 
 
 
