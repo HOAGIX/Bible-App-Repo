@@ -160,36 +160,50 @@ function BibleSection() {
     return JSON.parse(localStorage.getItem('bibleAnnotations') || '{}');
   });
 
-  const addAnnotation = (verseKey) => {
-      const note = prompt("Enter your annotation:", annotations[currentBook]?.[verseKey] || "");
-      if (note !== null) {
-        setAnnotations(prev => {
-          const updated = { ...prev };
-          if (!updated[currentBook]) updated[currentBook] = {};
-          updated[currentBook][verseKey] = note;
-          localStorage.setItem("bibleAnnotations", JSON.stringify(updated));
-          return updated;
-        });
-      }
-    };
+  const [highlightedVerse, setHighlightedVerse] = useState(() => {
+    return JSON.parse(localStorage.getItem('highlightedVerse') || '{}');
+  });
 
-    useEffect(() => {
+  const addAnnotation = (verseKey) => {
+    const note = prompt("Enter your annotation:", annotations[currentBook]?.[verseKey] || "");
+    if (note !== null) {
+      setAnnotations(prev => {
+        const updated = { ...prev };
+        if (!updated[currentBook]) updated[currentBook] = {};
+        updated[currentBook][verseKey] = note;
+        localStorage.setItem("bibleAnnotations", JSON.stringify(updated));
+        return updated;
+      });
+    }
+  };
+
+  const highlightVerse = (verseKey) => {
+    setHighlightedVerse({ book: currentBook, verse: verseKey });
+    localStorage.setItem('highlightedVerse', JSON.stringify({ book: currentBook, verse: verseKey }));
+
+    // Scroll to the verse after DOM updates
+    setTimeout(() => {
+      const verseDiv = document.querySelector(`.verse-line[data-verse="${verseKey}"]`);
+      if (verseDiv) verseDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
+  };
+
+  useEffect(() => {
     const fetchBibleData = async () => {
       const response = await fetch(`Books/${currentBook}.txt`);
       const text = await response.text();
       const formattedData = formatBibleBook(currentBook, text, annotations);
       setCurrentBookData(formattedData);
     };
-
     fetchBibleData();
   }, [currentBook, annotations]);
-  
+
   useEffect(() => {
     const bibleDiv = document.getElementById("Bible");
     if (!bibleDiv) return;
 
+    // Attach annotation buttons
     const buttons = bibleDiv.querySelectorAll(".annotate-btn");
-
     buttons.forEach((btn) => {
       btn.onclick = () => {
         const verseDiv = btn.closest(".verse-line");
@@ -197,8 +211,22 @@ function BibleSection() {
         addAnnotation(verseKey);
       };
     });
-  }, [currentBookData]);
 
+    // Attach highlight click
+    const verses = bibleDiv.querySelectorAll(".verse-line");
+    verses.forEach(verse => {
+      verse.onclick = () => highlightVerse(verse.dataset.verse);
+    });
+
+    // Apply highlight style
+    verses.forEach(verse => {
+      if (highlightedVerse.book === currentBook && verse.dataset.verse === highlightedVerse.verse) {
+        verse.classList.add("highlighted");
+      } else {
+        verse.classList.remove("highlighted");
+      }
+    });
+  }, [currentBookData, highlightedVerse]);
 
   const scrollToTop = () => {
     const bibleDiv = document.getElementById("Bible");
@@ -232,6 +260,7 @@ function BibleSection() {
     </div>
   );
 }
+
 
 
 

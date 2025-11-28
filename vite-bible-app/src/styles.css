@@ -235,6 +235,27 @@
   scale: 1.01;
   transition: scale ease 0.1s;
 }
+/* ---------- Highlighted Verse ---------- */
+.verse-line.highlighted {
+  background-color: #fff3b0; /* light yellow for highlight */
+  border-left: 4px solid #ffcc00;
+  padding-left: 0.3rem;      /* ensure text doesn't jump */
+  transition: background-color 0.3s, transform 0.2s;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  scale: 1.02;
+}
+
+.body.dark .verse-line.highlighted {
+  background-color: #4a3f1b; /* darker yellow for dark mode */
+  border-left: 4px solid #ffd700;
+}
+
+.verse-line.highlighted:hover {
+  transform: scale(1.01);
+  transition: transform 0.2s;
+}
+
 
 /* ---------- Switch Book Buttons ---------- */
 .Switch-Book {
