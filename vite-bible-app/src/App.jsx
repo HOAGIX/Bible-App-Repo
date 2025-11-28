@@ -44,7 +44,7 @@ function App() {
         {show === 'Home' && <Mainsection />}
         {show === 'Bible' && <BibleSection />}
         {show === 'Quiz' && <QuizSection />}
-        {show === 'More' && <div id='More'>More Section</div>}
+        {show === 'More' && <MoreSection />}
       </div>
 
       <footer>
@@ -378,21 +378,27 @@ function Mainsection() {
               sub.answers['15']?.answer === "Approved"
           )
           .map(submission => {
-            const purpose = submission.answers['10']?.answer || '';
-            let videoAnswer = submission.answers['22']?.answer || '';
-            const writtentext = submission.answers['5']?.answer || '';
-            const prayer = submission.answers['7']?.answer || '';
-            const author = "By: " + submission.answers['20']?.answer || '';
+            
+            if(Date.parse(submission.updated_at) < Date.now()){
+              const purpose = submission.answers['10']?.answer || '';
+              let videoAnswer = submission.answers['22']?.answer || '';
+              const writtentext = submission.answers['5']?.answer || '';
+              const prayer = submission.answers['7']?.answer || '';
+              const author = "By: " + submission.answers['20']?.answer || '';
 
-            // If it's an array (Jotform file upload), pick the first item
-            if (Array.isArray(videoAnswer)) videoAnswer = videoAnswer[0];
+              // If it's an array (Jotform file upload), pick the first item
+              if (Array.isArray(videoAnswer)) videoAnswer = videoAnswer[0];
 
-            // If it's a relative file path, prepend Jotform CDN
-            if (videoAnswer && !videoAnswer.startsWith('http')) {
-              videoAnswer = `https://cdn.jotfor.ms/files/${videoAnswer}`;
+              // If it's a relative file path, prepend Jotform CDN
+              if (videoAnswer && !videoAnswer.startsWith('http')) {
+                videoAnswer = `https://cdn.jotfor.ms/files/${videoAnswer}`;
+              }
+              
+              return new Devotion(purpose, videoAnswer, writtentext, prayer, author);
+            } else {
+              setDevotionIndex(prevIndex => (prevIndex + 1) % devotions.length);
+              return null;
             }
-
-            return new Devotion(purpose, videoAnswer, writtentext, prayer, author);
           });
 
         console.log("Approved Devotions:", approvedDevotions);
@@ -449,5 +455,12 @@ function Mainsection() {
   );
 }
 
+function MoreSection() {
+  return (
+    <div id='More'>
+      More Section
+    </div>
+  );
+}
 
 export default App
